@@ -39,36 +39,32 @@
         "properties": {
           "paymentTerms": {
             "type": "string",
-            "enum": ["PREPAID", "COLLECT", "CREDIT"],
-            "description": "Payment terms"
+            "description": "Payment terms description"
           },
-          "creditLimit": {
-            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
-          },
-          "paymentDuration": {
-            "$ref": "./tms-api-spec-common.json#/components/schemas/Duration"
+          "billingDetails": {
+            "$ref": "./tms-api-spec-billing.json#/components/schemas/BillingDetails"
           },
           "serviceLevel": {
             "type": "string",
-            "enum": ["STANDARD", "EXPRESS", "PREMIUM"],
             "description": "Service level agreement"
+          },
+          "specialConditions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Special conditions or requirements"
           }
         }
       },
       "ContractRate": {
         "type": "object",
-        "required": ["origin", "destination", "rateType", "amount"],
-        "description": "Contract rate for a specific route",
+        "required": ["rateType", "amount"],
+        "description": "Contract rate information",
         "properties": {
-          "origin": {
-            "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
-          },
-          "destination": {
-            "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
-          },
           "rateType": {
             "type": "string",
-            "enum": ["PER_CONTAINER", "PER_KG", "PER_CBM", "FLAT_RATE"],
+            "enum": ["BASE", "SURCHARGE", "DISCOUNT"],
             "description": "Type of rate"
           },
           "amount": {
@@ -89,17 +85,16 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": ["MIN_QUANTITY", "MAX_QUANTITY", "EQUIPMENT_TYPE", "COMMODITY_TYPE"],
+            "enum": ["WEIGHT", "VOLUME", "DISTANCE", "DURATION"],
             "description": "Type of condition"
           },
           "value": {
-            "type": "string",
+            "type": "number",
             "description": "Condition value"
           },
-          "operator": {
+          "unit": {
             "type": "string",
-            "enum": ["EQUALS", "GREATER_THAN", "LESS_THAN", "BETWEEN"],
-            "description": "Comparison operator"
+            "description": "Unit of measurement"
           }
         }
       }
