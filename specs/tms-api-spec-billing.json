@@ -66,26 +66,98 @@
         }
       },
       "BillingDetails": {
+        "allOf": [
+          {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity"
+          },
+          {
+            "type": "object",
+            "required": ["billingParty", "amount"],
+            "description": "Billing information",
+            "properties": {
+              "billingParty": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/Party"
+              },
+              "amount": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+              },
+              "dueDate": {
+                "type": "string",
+                "format": "date",
+                "description": "Payment due date"
+              },
+              "paymentTerms": {
+                "type": "string",
+                "description": "Payment terms description"
+              },
+              "invoiceNumber": {
+                "type": "string",
+                "description": "Invoice reference number"
+              },
+              "lineItems": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BillingLineItem"
+                }
+              },
+              "taxes": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TaxDetail"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "BillingLineItem": {
         "type": "object",
-        "required": ["billingParty", "paymentTerms"],
-        "description": "Billing information for a shipment",
+        "required": ["description", "amount"],
+        "description": "Individual billing line item",
         "properties": {
-          "billingParty": {
-            "$ref": "./tms-api-spec-common.json#/components/schemas/Party"
-          },
-          "paymentTerms": {
+          "description": {
             "type": "string",
-            "enum": ["PREPAID", "COLLECT", "THIRD_PARTY"],
-            "description": "Payment terms for the shipment"
+            "description": "Line item description"
           },
-          "invoicingPreferences": {
-            "$ref": "#/components/schemas/InvoicingPreferences"
+          "amount": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
           },
-          "paymentMethod": {
-            "$ref": "#/components/schemas/PaymentMethod"
+          "quantity": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Quantity of items"
           },
-          "taxInformation": {
-            "$ref": "#/components/schemas/TaxInformation"
+          "unitPrice": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+          },
+          "serviceCode": {
+            "type": "string",
+            "description": "Service code reference"
+          }
+        }
+      },
+      "TaxDetail": {
+        "type": "object",
+        "required": ["type", "rate", "amount"],
+        "description": "Tax information",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["VAT", "GST", "SALES_TAX", "OTHER"],
+            "description": "Type of tax"
+          },
+          "rate": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Tax rate percentage"
+          },
+          "amount": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+          },
+          "taxNumber": {
+            "type": "string",
+            "description": "Tax registration number"
           }
         }
       },
