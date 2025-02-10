@@ -53,6 +53,10 @@
     {
       "name": "Schedule Services",
       "description": "Operations for transit times and scheduling"
+    },
+    {
+      "name": "Billing Services",
+      "description": "Operations for billing and invoicing"
     }
   ],
   "components": {
@@ -186,6 +190,102 @@
             "format": "uri",
             "description": "Link to error documentation",
             "example": "https://developer.example.com/errors/VALIDATION_ERROR"
+          }
+        }
+      },
+      "BillingDetails": {
+        "allOf": [
+          {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity"
+          },
+          {
+            "type": "object",
+            "required": ["billingParty", "amount"],
+            "description": "Billing information",
+            "properties": {
+              "billingParty": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/Party"
+              },
+              "amount": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+              },
+              "dueDate": {
+                "type": "string",
+                "format": "date",
+                "description": "Payment due date"
+              },
+              "paymentTerms": {
+                "type": "string",
+                "description": "Payment terms description"
+              },
+              "invoiceNumber": {
+                "type": "string",
+                "description": "Invoice reference number"
+              },
+              "lineItems": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BillingLineItem"
+                }
+              },
+              "taxes": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TaxDetail"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "BillingLineItem": {
+        "type": "object",
+        "required": ["description", "amount"],
+        "description": "Individual billing line item",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Line item description"
+          },
+          "amount": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Quantity of items"
+          },
+          "unitPrice": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+          },
+          "serviceCode": {
+            "type": "string",
+            "description": "Service code reference"
+          }
+        }
+      },
+      "TaxDetail": {
+        "type": "object",
+        "required": ["type", "rate", "amount"],
+        "description": "Tax information",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["VAT", "GST", "SALES_TAX", "OTHER"],
+            "description": "Type of tax"
+          },
+          "rate": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Tax rate percentage"
+          },
+          "amount": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+          },
+          "taxNumber": {
+            "type": "string",
+            "description": "Tax registration number"
           }
         }
       }

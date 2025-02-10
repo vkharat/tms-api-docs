@@ -42,7 +42,7 @@
             "description": "Payment terms description"
           },
           "billingDetails": {
-            "$ref": "./tms-api-spec-billing.json#/components/schemas/BillingDetails"
+            "$ref": "./tms-api-spec-base.json#/components/schemas/BillingDetails"
           },
           "serviceLevel": {
             "type": "string",
