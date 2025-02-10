@@ -14,24 +14,28 @@
           "message": {
             "type": "string",
             "description": "Human-readable error message",
-            "example": "The specified location code USXXX is not valid"
-          },
-          "domain": {
-            "type": "string",
-            "enum": ["VALIDATION", "BUSINESS", "TECHNICAL", "SECURITY"],
-            "description": "Domain categorization of the error"
-          },
-          "severity": {
-            "type": "string",
-            "enum": ["ERROR", "FATAL"],
-            "description": "Severity level of the error"
+            "example": "The specified location is invalid"
           },
           "details": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ErrorDetail"
-            },
-            "description": "Additional error details"
+            }
+          },
+          "type": {
+            "type": "string",
+            "enum": ["VALIDATION", "BUSINESS", "TECHNICAL", "SECURITY"],
+            "description": "Type of error"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["INFO", "WARNING", "ERROR", "CRITICAL"],
+            "description": "Error severity level"
+          },
+          "domain": {
+            "type": "string",
+            "enum": ["VALIDATION", "BUSINESS", "TECHNICAL", "SECURITY"],
+            "description": "Domain categorization of the error"
           },
           "correlationId": {
             "type": "string",
@@ -47,27 +51,23 @@
       },
       "ErrorDetail": {
         "type": "object",
-        "description": "Detailed information about a specific error",
+        "description": "Detailed error information",
         "properties": {
           "field": {
             "type": "string",
-            "description": "Field path where the error occurred",
-            "example": "routingDetails.origin.code"
+            "description": "Field that caused the error"
           },
           "value": {
             "type": "string",
-            "description": "The invalid value",
-            "example": "USXXX"
+            "description": "Invalid value"
           },
           "reason": {
             "type": "string",
-            "description": "Specific reason for the error",
-            "example": "UN/LOCODE not found"
+            "description": "Reason for the error"
           },
           "suggestion": {
             "type": "string",
-            "description": "Suggested correction if available",
-            "example": "Did you mean USLAX?"
+            "description": "Suggested correction"
           }
         }
       },
@@ -79,67 +79,40 @@
             "$ref": "#/components/schemas/Error"
           },
           {
-            "type": "object",
             "properties": {
-              "validationErrors": {
+              "validationRules": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/ValidationIssue"
-                }
+                  "type": "string"
+                },
+                "description": "Failed validation rules"
+              },
+              "constraints": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Validation constraints"
               }
             }
           }
         ]
       },
-      "ValidationIssue": {
-        "type": "object",
-        "required": ["type", "field"],
-        "description": "Individual validation issue",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "REQUIRED_FIELD_MISSING",
-              "INVALID_FORMAT",
-              "OUT_OF_RANGE",
-              "INVALID_ENUM_VALUE",
-              "DEPENDENCY_VIOLATION"
-            ],
-            "description": "Type of validation issue"
-          },
-          "field": {
-            "type": "string",
-            "description": "Field path that failed validation"
-          },
-          "message": {
-            "type": "string",
-            "description": "Validation message"
-          },
-          "constraints": {
-            "type": "object",
-            "description": "Validation constraints that were violated",
-            "additionalProperties": true
-          }
-        }
-      },
       "BusinessError": {
         "type": "object",
-        "description": "Business rule violation error",
+        "description": "Business logic error details",
         "allOf": [
           {
             "$ref": "#/components/schemas/Error"
           },
           {
-            "type": "object",
             "properties": {
               "businessRule": {
                 "type": "string",
-                "description": "Identifier of the business rule violated"
+                "description": "Failed business rule"
               },
-              "impact": {
-                "type": "string",
-                "enum": ["LOW", "MEDIUM", "HIGH"],
-                "description": "Impact level of the violation"
+              "context": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Business context"
               }
             }
           }
@@ -147,14 +120,17 @@
       },
       "TechnicalError": {
         "type": "object",
-        "description": "Technical or system error",
+        "description": "Technical/system error details",
         "allOf": [
           {
             "$ref": "#/components/schemas/Error"
           },
           {
-            "type": "object",
             "properties": {
+              "errorId": {
+                "type": "string",
+                "description": "Unique error identifier"
+              },
               "component": {
                 "type": "string",
                 "description": "System component where error occurred"

@@ -2,46 +2,38 @@
   "components": {
     "schemas": {
       "User": {
-        "type": "object",
-        "required": ["userId", "status", "userType"],
-        "description": "User account information",
-        "properties": {
-          "userId": {
-            "type": "string",
-            "description": "Unique identifier for the user"
+        "allOf": [
+          {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity"
           },
-          "status": {
-            "type": "string",
-            "enum": ["ACTIVE", "INACTIVE", "SUSPENDED", "PENDING"],
-            "description": "Current user status"
-          },
-          "userType": {
-            "type": "string",
-            "enum": ["CUSTOMER", "EMPLOYEE", "PARTNER", "ADMIN", "SYSTEM"],
-            "description": "Type of user account"
-          },
-          "profile": {
-            "$ref": "#/components/schemas/UserProfile"
-          },
-          "roles": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserRole"
+          {
+            "type": "object",
+            "required": ["userType"],
+            "description": "User account information",
+            "properties": {
+              "userType": {
+                "type": "string",
+                "enum": ["CUSTOMER", "EMPLOYEE", "PARTNER", "ADMIN", "SYSTEM"],
+                "description": "Type of user"
+              },
+              "profile": {
+                "$ref": "#/components/schemas/UserProfile"
+              },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/UserRole"
+                }
+              },
+              "preferences": {
+                "$ref": "#/components/schemas/UserPreferences"
+              },
+              "security": {
+                "$ref": "#/components/schemas/SecuritySettings"
+              }
             }
-          },
-          "permissions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Permission"
-            }
-          },
-          "preferences": {
-            "$ref": "#/components/schemas/UserPreferences"
-          },
-          "security": {
-            "$ref": "#/components/schemas/SecuritySettings"
           }
-        }
+        ]
       },
       "UserProfile": {
         "type": "object",
@@ -59,28 +51,20 @@
           "email": {
             "type": "string",
             "format": "email",
-            "description": "Primary email address"
+            "description": "User's email address"
           },
           "phone": {
             "type": "string",
             "pattern": "^\\+?[1-9]\\d{1,14}$",
-            "description": "Contact phone number"
+            "description": "User's phone number"
           },
           "organization": {
-            "$ref": "#/components/schemas/Organization"
+            "type": "string",
+            "description": "User's organization"
           },
           "department": {
             "type": "string",
-            "description": "Department within organization"
-          },
-          "language": {
-            "type": "string",
-            "pattern": "^[a-z]{2}-[A-Z]{2}$",
-            "description": "Preferred language (e.g., en-US)"
-          },
-          "timezone": {
-            "type": "string",
-            "description": "Preferred timezone"
+            "description": "User's department"
           }
         }
       },
@@ -106,40 +90,67 @@
             "items": {
               "$ref": "#/components/schemas/Permission"
             }
-          },
-          "scope": {
-            "$ref": "#/components/schemas/AccessScope"
-          },
-          "hierarchy": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Role hierarchy level"
           }
         }
       },
       "Permission": {
         "type": "object",
-        "required": ["resource", "action"],
+        "required": ["resource", "actions"],
         "description": "Permission definition",
         "properties": {
           "resource": {
             "type": "string",
-            "description": "Resource being accessed"
+            "description": "Resource identifier"
           },
-          "action": {
-            "type": "string",
-            "enum": ["READ", "WRITE", "DELETE", "ADMIN"],
-            "description": "Allowed action"
-          },
-          "constraints": {
+          "actions": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/AccessConstraint"
+              "type": "string",
+              "enum": ["READ", "CREATE", "UPDATE", "DELETE", "APPROVE", "ADMIN"],
+              "description": "Allowed actions"
             }
           },
-          "delegatable": {
-            "type": "boolean",
-            "description": "Whether permission can be delegated"
+          "conditions": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Conditional access rules"
+          }
+        }
+      },
+      "UserPreferences": {
+        "type": "object",
+        "description": "User preferences",
+        "properties": {
+          "language": {
+            "type": "string",
+            "pattern": "^[a-z]{2}-[A-Z]{2}$",
+            "description": "Preferred language"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Preferred timezone"
+          },
+          "notifications": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "boolean",
+                "description": "Email notifications enabled"
+              },
+              "sms": {
+                "type": "boolean",
+                "description": "SMS notifications enabled"
+              },
+              "push": {
+                "type": "boolean",
+                "description": "Push notifications enabled"
+              }
+            }
+          },
+          "displaySettings": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "UI display preferences"
           }
         }
       },
@@ -149,59 +160,53 @@
         "properties": {
           "mfaEnabled": {
             "type": "boolean",
-            "description": "Multi-factor authentication status"
+            "description": "Multi-factor authentication enabled"
           },
-          "mfaMethods": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": ["SMS", "EMAIL", "AUTHENTICATOR", "HARDWARE_TOKEN"]
-            }
-          },
-          "passwordLastChanged": {
+          "lastPasswordChange": {
             "type": "string",
             "format": "date-time",
             "description": "Last password change timestamp"
           },
+          "passwordExpiryDays": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Days until password expires"
+          },
           "loginAttempts": {
             "type": "integer",
             "minimum": 0,
-            "description": "Failed login attempt count"
+            "description": "Failed login attempts"
           },
-          "maxLoginAttempts": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Maximum failed login attempts"
+          "accessRestrictions": {
+            "$ref": "#/components/schemas/AccessRestrictions"
           }
         }
       },
-      "AccessScope": {
+      "AccessRestrictions": {
         "type": "object",
-        "description": "Scope of access control",
+        "description": "Access restriction settings",
         "properties": {
-          "organizations": {
+          "allowedIPs": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "format": "ipv4"
             },
-            "description": "Accessible organizations"
+            "description": "Allowed IP addresses"
           },
-          "regions": {
+          "allowedTimeWindows": {
             "type": "array",
             "items": {
-              "type": "string"
-            },
-            "description": "Accessible regions"
+              "$ref": "./tms-api-spec-common.json#/components/schemas/TimeWindow"
+            }
           },
-          "timeRestrictions": {
-            "$ref": "#/components/schemas/TimeRestrictions"
-          },
-          "ipRestrictions": {
+          "allowedRegions": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
             },
-            "description": "Allowed IP addresses/ranges"
+            "description": "Allowed regions (country codes)"
           }
         }
       }

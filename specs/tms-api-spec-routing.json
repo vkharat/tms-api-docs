@@ -7,24 +7,20 @@
         "description": "Routing information for the shipment",
         "properties": {
           "origin": {
-            "$ref": "#/components/schemas/Location",
-            "description": "Origin location of the shipment"
+            "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
           },
           "destination": {
-            "$ref": "#/components/schemas/Location",
-            "description": "Destination location of the shipment"
+            "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
           },
           "via": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Location"
+              "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
             },
             "description": "Intermediate points in the route"
           },
-          "routeType": {
-            "type": "string",
-            "enum": ["DIRECT", "MULTI_MODAL", "TRANSSHIPMENT", "FEEDER"],
-            "description": "Type of routing"
+          "schedule": {
+            "$ref": "#/components/schemas/RouteSchedule"
           },
           "preferences": {
             "$ref": "#/components/schemas/RoutingPreferences"
@@ -34,69 +30,61 @@
           }
         }
       },
+      "RouteSchedule": {
+        "type": "object",
+        "description": "Schedule information for the route",
+        "properties": {
+          "departureWindow": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/DateRange"
+          },
+          "arrivalWindow": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/DateRange"
+          },
+          "transitTime": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/Duration"
+          },
+          "cutoffTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Latest time for booking"
+          }
+        }
+      },
       "RoutingPreferences": {
         "type": "object",
-        "description": "Preferences for route selection",
+        "description": "Routing preferences",
         "properties": {
-          "priorityFactors": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PriorityFactor"
-            },
-            "description": "Factors affecting route selection"
+          "priority": {
+            "type": "string",
+            "enum": ["FASTEST", "CHEAPEST", "GREENEST", "BALANCED"],
+            "description": "Route priority preference"
           },
           "preferredCarriers": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Preferred carrier codes"
+            "description": "Preferred carrier IDs"
           },
-          "maxTransshipments": {
+          "preferredModes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["SEA", "AIR", "RAIL", "ROAD"]
+            },
+            "description": "Preferred transportation modes"
+          },
+          "maxTransfers": {
             "type": "integer",
             "minimum": 0,
-            "description": "Maximum number of transshipments"
-          },
-          "transitTimeLimit": {
-            "$ref": "#/components/schemas/Duration"
-          }
-        }
-      },
-      "PriorityFactor": {
-        "type": "object",
-        "required": ["factor", "priority"],
-        "description": "Priority factor for route selection",
-        "properties": {
-          "factor": {
-            "type": "string",
-            "enum": ["COST", "TIME", "RELIABILITY", "CO2_EMISSIONS"],
-            "description": "Route selection factor"
-          },
-          "priority": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 10,
-            "description": "Priority level (1-10)"
-          },
-          "weight": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1,
-            "description": "Weight in calculation (0-1)"
+            "description": "Maximum number of transfers"
           }
         }
       },
       "RoutingRestrictions": {
         "type": "object",
-        "description": "Restrictions on route selection",
+        "description": "Routing restrictions",
         "properties": {
-          "excludedPorts": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Ports to avoid"
-          },
           "excludedCountries": {
             "type": "array",
             "items": {
@@ -105,16 +93,21 @@
             },
             "description": "Countries to avoid (ISO codes)"
           },
-          "transportModes": {
+          "excludedPorts": {
             "type": "array",
             "items": {
-              "type": "string",
-              "enum": ["SEA", "AIR", "RAIL", "ROAD"]
+              "type": "string"
             },
-            "description": "Allowed transport modes"
+            "description": "Ports to avoid"
           },
-          "vesselRestrictions": {
-            "$ref": "#/components/schemas/VesselRestrictions"
+          "maxTransitTime": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/Duration"
+          },
+          "operatingHours": {
+            "type": "array",
+            "items": {
+              "$ref": "./tms-api-spec-common.json#/components/schemas/OperatingSchedule"
+            }
           }
         }
       },

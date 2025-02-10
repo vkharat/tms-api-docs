@@ -12,12 +12,12 @@
           },
           "integrationType": {
             "type": "string",
-            "enum": ["CARRIER", "CUSTOMS_BROKER", "TERMINAL_OPERATOR", "WAREHOUSE", "FREIGHT_FORWARDER"],
-            "description": "Type of integration partner"
+            "enum": ["API", "EDI", "SFTP", "WEBHOOK"],
+            "description": "Type of integration"
           },
           "status": {
             "type": "string",
-            "enum": ["ACTIVE", "INACTIVE", "TESTING", "SUSPENDED"],
+            "enum": ["ACTIVE", "INACTIVE", "TESTING", "FAILED"],
             "description": "Current integration status"
           },
           "capabilities": {
@@ -35,11 +35,8 @@
           "authentication": {
             "$ref": "#/components/schemas/AuthenticationConfig"
           },
-          "messageFormats": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MessageFormat"
-            }
+          "messageFormat": {
+            "$ref": "#/components/schemas/MessageFormat"
           },
           "errorHandling": {
             "$ref": "#/components/schemas/ErrorHandlingConfig"
@@ -48,46 +45,36 @@
       },
       "IntegrationCapability": {
         "type": "object",
-        "required": ["capability", "status"],
-        "description": "Specific integration capability",
+        "required": ["type", "version"],
+        "description": "Supported integration capability",
         "properties": {
-          "capability": {
+          "type": {
             "type": "string",
-            "enum": [
-              "RATES_QUERY",
-              "BOOKING",
-              "TRACKING",
-              "DOCUMENTATION",
-              "CAPACITY",
-              "SCHEDULE",
-              "CUSTOMS_STATUS"
-            ],
+            "enum": ["BOOKING", "TRACKING", "DOCUMENTATION", "RATES"],
             "description": "Type of capability"
-          },
-          "status": {
-            "type": "string",
-            "enum": ["AVAILABLE", "UNAVAILABLE", "DEGRADED"],
-            "description": "Current capability status"
           },
           "version": {
             "type": "string",
+            "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
             "description": "Version of the capability"
           },
-          "configurations": {
-            "type": "object",
-            "additionalProperties": true,
-            "description": "Capability-specific configurations"
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Supported features"
           }
         }
       },
       "IntegrationEndpoint": {
         "type": "object",
-        "required": ["endpointId", "url", "method"],
+        "required": ["name", "url", "method"],
         "description": "Integration endpoint configuration",
         "properties": {
-          "endpointId": {
+          "name": {
             "type": "string",
-            "description": "Unique identifier for the endpoint"
+            "description": "Endpoint name"
           },
           "url": {
             "type": "string",
@@ -104,14 +91,7 @@
             "additionalProperties": {
               "type": "string"
             },
-            "description": "Required headers"
-          },
-          "rateLimit": {
-            "$ref": "#/components/schemas/RateLimit"
-          },
-          "timeout": {
-            "type": "integer",
-            "description": "Timeout in seconds"
+            "description": "Custom headers"
           }
         }
       },
@@ -126,65 +106,39 @@
             "description": "Authentication type"
           },
           "credentials": {
-            "$ref": "#/components/schemas/Credentials"
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Authentication credentials"
           },
-          "oauth2Config": {
-            "$ref": "#/components/schemas/OAuth2Config"
-          },
-          "tokenManagement": {
-            "$ref": "#/components/schemas/TokenManagement"
+          "tokenEndpoint": {
+            "type": "string",
+            "format": "uri",
+            "description": "Token endpoint for OAuth2"
           }
         }
       },
       "MessageFormat": {
         "type": "object",
-        "required": ["format", "version"],
+        "required": ["type"],
         "description": "Message format configuration",
         "properties": {
-          "format": {
+          "type": {
             "type": "string",
-            "enum": ["JSON", "XML", "EDI", "FLAT_FILE"],
+            "enum": ["JSON", "XML", "EDIFACT", "CSV"],
             "description": "Message format type"
           },
           "version": {
             "type": "string",
             "description": "Format version"
           },
+          "encoding": {
+            "type": "string",
+            "default": "UTF-8",
+            "description": "Character encoding"
+          },
           "schema": {
             "type": "string",
-            "description": "Schema definition or reference"
-          },
-          "mappings": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FieldMapping"
-            }
-          },
-          "validation": {
-            "$ref": "#/components/schemas/ValidationRules"
-          }
-        }
-      },
-      "FieldMapping": {
-        "type": "object",
-        "required": ["source", "target"],
-        "description": "Field mapping configuration",
-        "properties": {
-          "source": {
-            "type": "string",
-            "description": "Source field path"
-          },
-          "target": {
-            "type": "string",
-            "description": "Target field path"
-          },
-          "transformation": {
-            "type": "string",
-            "description": "Transformation rule or function"
-          },
-          "defaultValue": {
-            "type": "string",
-            "description": "Default value if source is missing"
+            "description": "Schema definition or URL"
           }
         }
       },
@@ -192,40 +146,15 @@
         "type": "object",
         "description": "Error handling configuration",
         "properties": {
-          "retryPolicy": {
-            "$ref": "#/components/schemas/RetryPolicy"
-          },
-          "errorMappings": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ErrorMapping"
-            }
-          },
-          "fallbackBehavior": {
-            "type": "string",
-            "enum": ["FAIL", "RETRY", "USE_BACKUP", "IGNORE"],
-            "description": "Behavior when all retries fail"
-          }
-        }
-      },
-      "RetryPolicy": {
-        "type": "object",
-        "description": "Retry policy configuration",
-        "properties": {
-          "maxAttempts": {
+          "retryAttempts": {
             "type": "integer",
-            "minimum": 1,
-            "description": "Maximum retry attempts"
+            "minimum": 0,
+            "description": "Number of retry attempts"
           },
-          "initialDelay": {
-            "type": "integer",
-            "description": "Initial delay in milliseconds"
+          "retryInterval": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/Duration"
           },
-          "backoffMultiplier": {
-            "type": "number",
-            "description": "Delay multiplier for subsequent retries"
-          },
-          "retryableErrors": {
+          "errorCodes": {
             "type": "array",
             "items": {
               "type": "string"

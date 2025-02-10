@@ -7,45 +7,40 @@
         "description": "Performance measurement and analytics data",
         "properties": {
           "timeframe": {
-            "$ref": "#/components/schemas/DateRange"
+            "$ref": "./tms-api-spec-common.json#/components/schemas/DateRange"
           },
           "metrics": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MetricData"
+              "$ref": "#/components/schemas/Metric"
             }
           },
-          "aggregationLevel": {
+          "aggregation": {
             "type": "string",
-            "enum": ["HOURLY", "DAILY", "WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY"],
-            "description": "Time granularity of the metrics"
-          },
-          "dimensions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Analysis dimensions (e.g., carrier, route, customer)"
+            "enum": ["HOURLY", "DAILY", "WEEKLY", "MONTHLY"],
+            "description": "Metric aggregation level"
           },
           "filters": {
             "$ref": "#/components/schemas/MetricFilters"
-          },
-          "comparisons": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MetricComparison"
-            }
           }
         }
       },
-      "MetricData": {
+      "Metric": {
         "type": "object",
         "required": ["name", "value", "unit"],
-        "description": "Individual metric measurement",
+        "description": "Individual performance metric",
         "properties": {
           "name": {
             "type": "string",
-            "description": "Name of the metric"
+            "enum": [
+              "ON_TIME_DELIVERY",
+              "TRANSIT_TIME",
+              "COST_EFFICIENCY",
+              "CAPACITY_UTILIZATION",
+              "EXCEPTION_RATE",
+              "CUSTOMER_SATISFACTION"
+            ],
+            "description": "Metric name"
           },
           "value": {
             "type": "number",
@@ -55,16 +50,11 @@
             "type": "string",
             "description": "Unit of measurement"
           },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the metric was recorded"
+          "trend": {
+            "$ref": "#/components/schemas/MetricTrend"
           },
-          "confidence": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1,
-            "description": "Confidence level in the metric (0-1)"
+          "threshold": {
+            "$ref": "#/components/schemas/MetricThreshold"
           },
           "components": {
             "type": "array",
@@ -74,97 +64,74 @@
           }
         }
       },
-      "MetricFilters": {
+      "MetricTrend": {
         "type": "object",
-        "description": "Filtering criteria for metrics",
+        "description": "Trend analysis for metric",
         "properties": {
-          "timeRange": {
-            "$ref": "#/components/schemas/DateRange"
+          "direction": {
+            "type": "string",
+            "enum": ["INCREASING", "DECREASING", "STABLE"],
+            "description": "Trend direction"
           },
-          "dimensions": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "description": "Dimension-based filters"
+          "percentage": {
+            "type": "number",
+            "description": "Percentage change"
           },
-          "thresholds": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MetricThreshold"
-            }
-          },
-          "exclusions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Metrics to exclude"
+          "period": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/Duration"
           }
         }
       },
       "MetricThreshold": {
         "type": "object",
-        "required": ["metric", "operator", "value"],
-        "description": "Threshold definition for metric filtering",
+        "description": "Threshold configuration for metric",
         "properties": {
-          "metric": {
-            "type": "string",
-            "description": "Metric name"
-          },
-          "operator": {
-            "type": "string",
-            "enum": ["GT", "GTE", "LT", "LTE", "EQ", "NEQ"],
-            "description": "Comparison operator"
-          },
-          "value": {
+          "warning": {
             "type": "number",
-            "description": "Threshold value"
+            "description": "Warning threshold value"
           },
-          "severity": {
+          "critical": {
+            "type": "number",
+            "description": "Critical threshold value"
+          },
+          "comparison": {
             "type": "string",
-            "enum": ["INFO", "WARNING", "CRITICAL"],
-            "description": "Severity when threshold is breached"
+            "enum": ["GREATER_THAN", "LESS_THAN", "EQUAL", "BETWEEN"],
+            "description": "Comparison operator"
           }
         }
       },
-      "MetricComparison": {
+      "MetricFilters": {
         "type": "object",
-        "required": ["baseMetric", "comparisonMetric", "type"],
-        "description": "Comparison between metrics",
+        "description": "Filters for metric calculation",
         "properties": {
-          "baseMetric": {
-            "type": "string",
-            "description": "Base metric for comparison"
+          "routes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Route identifiers"
           },
-          "comparisonMetric": {
-            "type": "string",
-            "description": "Metric being compared against"
+          "carriers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Carrier identifiers"
           },
-          "type": {
-            "type": "string",
-            "enum": ["PERIOD", "TARGET", "BENCHMARK"],
-            "description": "Type of comparison"
+          "customers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Customer identifiers"
           },
-          "difference": {
-            "type": "number",
-            "description": "Absolute difference"
-          },
-          "percentageChange": {
-            "type": "number",
-            "description": "Percentage change"
-          },
-          "trend": {
-            "type": "string",
-            "enum": ["IMPROVING", "STABLE", "DEGRADING"],
-            "description": "Trend direction"
-          },
-          "analysis": {
-            "type": "string",
-            "description": "Notable observations from comparison"
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Service types"
           }
         }
       },

@@ -2,54 +2,54 @@
   "components": {
     "schemas": {
       "Notification": {
-        "type": "object",
-        "required": ["notificationId", "type", "priority", "content"],
-        "description": "Notification message structure",
-        "properties": {
-          "notificationId": {
-            "type": "string",
-            "description": "Unique identifier for the notification"
+        "allOf": [
+          {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity"
           },
-          "type": {
-            "type": "string",
-            "enum": [
-              "SHIPMENT_UPDATE",
-              "DOCUMENT_READY",
-              "EXCEPTION_ALERT",
-              "APPROVAL_REQUEST",
-              "SYSTEM_ALERT",
-              "PAYMENT_REMINDER",
-              "COMPLIANCE_ALERT"
-            ],
-            "description": "Type of notification"
-          },
-          "priority": {
-            "type": "string",
-            "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
-            "description": "Notification priority"
-          },
-          "content": {
-            "$ref": "#/components/schemas/NotificationContent"
-          },
-          "recipients": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/NotificationRecipient"
+          {
+            "type": "object",
+            "required": ["priority", "content"],
+            "description": "Notification message structure",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "SHIPMENT_UPDATE",
+                  "DOCUMENT_READY",
+                  "EXCEPTION_ALERT",
+                  "APPROVAL_REQUEST",
+                  "SYSTEM_ALERT",
+                  "PAYMENT_REMINDER",
+                  "COMPLIANCE_ALERT"
+                ],
+                "description": "Type of notification"
+              },
+              "priority": {
+                "type": "string",
+                "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+                "description": "Notification priority"
+              },
+              "content": {
+                "$ref": "#/components/schemas/NotificationContent"
+              },
+              "recipients": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NotificationRecipient"
+                }
+              },
+              "channels": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NotificationChannel"
+                }
+              },
+              "tracking": {
+                "$ref": "#/components/schemas/NotificationTracking"
+              }
             }
-          },
-          "channels": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/NotificationChannel"
-            }
-          },
-          "tracking": {
-            "$ref": "#/components/schemas/NotificationTracking"
-          },
-          "metadata": {
-            "$ref": "#/components/schemas/NotificationMetadata"
           }
-        }
+        ]
       },
       "NotificationContent": {
         "type": "object",
@@ -58,20 +58,20 @@
         "properties": {
           "subject": {
             "type": "string",
-            "description": "Notification subject or title"
+            "description": "Notification subject"
           },
           "body": {
             "type": "string",
-            "description": "Main notification message"
+            "description": "Notification body"
           },
           "template": {
             "type": "string",
-            "description": "Template identifier if using templated content"
+            "description": "Template identifier"
           },
-          "templateData": {
+          "variables": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Data to populate template placeholders"
+            "description": "Template variables"
           },
           "attachments": {
             "type": "array",
@@ -81,108 +81,167 @@
           }
         }
       },
-      "NotificationRecipient": {
+      "NotificationAttachment": {
         "type": "object",
-        "required": ["recipientId", "type"],
-        "description": "Recipient of the notification",
+        "required": ["name", "type", "content"],
+        "description": "Attachment for notification",
         "properties": {
-          "recipientId": {
+          "name": {
             "type": "string",
-            "description": "Unique identifier for the recipient"
+            "description": "Attachment name"
           },
           "type": {
             "type": "string",
-            "enum": ["USER", "GROUP", "ROLE", "SYSTEM"],
-            "description": "Type of recipient"
+            "enum": ["PDF", "IMAGE", "EXCEL", "WORD", "OTHER"],
+            "description": "Attachment type"
+          },
+          "content": {
+            "type": "string",
+            "format": "uri",
+            "description": "Content URI"
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Size in bytes"
+          }
+        }
+      },
+      "NotificationRecipient": {
+        "type": "object",
+        "required": ["type", "address"],
+        "description": "Notification recipient",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["USER", "GROUP", "ROLE", "EMAIL", "PHONE"],
+            "description": "Recipient type"
+          },
+          "address": {
+            "type": "string",
+            "description": "Recipient address"
           },
           "preferences": {
-            "$ref": "#/components/schemas/NotificationPreferences"
-          },
-          "deliveryStatus": {
-            "type": "string",
-            "enum": ["PENDING", "SENT", "DELIVERED", "FAILED"],
-            "description": "Current delivery status"
+            "$ref": "#/components/schemas/RecipientPreferences"
           }
         }
       },
-      "NotificationChannel": {
-        "type": "object",
-        "required": ["channelType", "status"],
-        "description": "Notification delivery channel",
-        "properties": {
-          "channelType": {
-            "type": "string",
-            "enum": ["EMAIL", "SMS", "PUSH", "IN_APP", "WEBHOOK"],
-            "description": "Type of notification channel"
-          },
-          "status": {
-            "type": "string",
-            "enum": ["ACTIVE", "INACTIVE", "FAILED"],
-            "description": "Channel status"
-          },
-          "configuration": {
-            "$ref": "#/components/schemas/ChannelConfiguration"
-          },
-          "deliveryAttempts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DeliveryAttempt"
-            }
-          }
-        }
-      },
-      "NotificationPreferences": {
+      "RecipientPreferences": {
         "type": "object",
         "description": "Recipient notification preferences",
         "properties": {
-          "preferredChannels": {
+          "language": {
+            "type": "string",
+            "pattern": "^[a-z]{2}-[A-Z]{2}$",
+            "description": "Preferred language"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Preferred timezone"
+          },
+          "channels": {
             "type": "array",
             "items": {
               "type": "string",
               "enum": ["EMAIL", "SMS", "PUSH", "IN_APP"]
             },
-            "description": "Preferred notification channels"
+            "description": "Preferred channels"
+          }
+        }
+      },
+      "NotificationChannel": {
+        "type": "object",
+        "required": ["type", "config"],
+        "description": "Notification delivery channel",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["EMAIL", "SMS", "PUSH", "IN_APP"],
+            "description": "Channel type"
           },
-          "schedules": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DeliverySchedule"
-            }
+          "config": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Channel configuration"
           },
-          "blackoutPeriods": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BlackoutPeriod"
-            }
-          },
-          "filters": {
-            "$ref": "#/components/schemas/NotificationFilters"
+          "priority": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Channel priority"
           }
         }
       },
       "NotificationTracking": {
         "type": "object",
-        "description": "Notification delivery and interaction tracking",
+        "description": "Notification delivery tracking",
         "properties": {
           "status": {
             "type": "string",
             "enum": ["PENDING", "SENT", "DELIVERED", "FAILED", "READ"],
-            "description": "Current status"
+            "description": "Delivery status"
           },
-          "deliveryAttempts": {
+          "attempts": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DeliveryAttempt"
             }
           },
-          "interactions": {
+          "readAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When notification was read"
+          }
+        }
+      },
+      "DeliveryAttempt": {
+        "type": "object",
+        "required": ["timestamp", "status"],
+        "description": "Notification delivery attempt",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Attempt timestamp"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["SUCCESS", "FAILURE"],
+            "description": "Attempt status"
+          },
+          "channel": {
+            "type": "string",
+            "description": "Delivery channel used"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if failed"
+          }
+        }
+      },
+      "NotificationMetadata": {
+        "type": "object",
+        "description": "Additional notification metadata",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Expiration timestamp"
+          },
+          "tags": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/NotificationInteraction"
-            }
+              "type": "string"
+            },
+            "description": "Notification tags"
           },
-          "analytics": {
-            "$ref": "#/components/schemas/NotificationAnalytics"
+          "source": {
+            "type": "string",
+            "description": "Notification source"
           }
         }
       }

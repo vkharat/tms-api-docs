@@ -2,176 +2,83 @@
   "components": {
     "schemas": {
       "DocumentationRequest": {
-        "type": "object",
-        "required": ["bookingId", "documentTypes"],
-        "description": "Request for shipping documentation",
-        "properties": {
-          "bookingId": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Associated booking identifier"
+        "allOf": [
+          {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity"
           },
-          "documentTypes": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "BILL_OF_LADING",
-                "SEA_WAYBILL",
-                "COMMERCIAL_INVOICE",
-                "PACKING_LIST",
-                "CERTIFICATE_OF_ORIGIN",
-                "DANGEROUS_GOODS_DECLARATION",
-                "CUSTOMS_DECLARATION"
-              ]
-            },
-            "description": "Types of documents needed"
-          },
-          "documentationPreferences": {
-            "$ref": "#/components/schemas/DocumentPreferences"
-          },
-          "partyDetails": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DocumentParty"
-            },
-            "description": "Parties to be listed on documents"
-          }
-        }
-      },
-      "DocumentPreferences": {
-        "type": "object",
-        "description": "Preferences for document generation",
-        "properties": {
-          "format": {
-            "type": "string",
-            "enum": ["PDF", "WORD", "XML", "EDI"],
-            "default": "PDF",
-            "description": "Preferred document format"
-          },
-          "language": {
-            "type": "string",
-            "pattern": "^[a-z]{2}-[A-Z]{2}$",
-            "description": "Language code (e.g., en-US)",
-            "default": "en-US"
-          },
-          "distribution": {
-            "$ref": "#/components/schemas/DocumentDistribution"
-          },
-          "templateId": {
-            "type": "string",
-            "description": "Specific template to use"
-          }
-        }
-      },
-      "DocumentDistribution": {
-        "type": "object",
-        "description": "Document distribution preferences",
-        "properties": {
-          "deliveryMethod": {
-            "type": "string",
-            "enum": ["EMAIL", "API", "PORTAL", "EDI"],
-            "description": "How to deliver the documents"
-          },
-          "recipients": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DocumentRecipient"
-            }
-          },
-          "notificationPreferences": {
-            "$ref": "#/components/schemas/NotificationPreferences"
-          }
-        }
-      },
-      "DocumentParty": {
-        "type": "object",
-        "required": ["role", "partyDetails"],
-        "description": "Party to be included in documentation",
-        "properties": {
-          "role": {
-            "type": "string",
-            "enum": [
-              "SHIPPER",
-              "CONSIGNEE",
-              "NOTIFY_PARTY",
-              "CUSTOMS_BROKER",
-              "FREIGHT_FORWARDER"
-            ],
-            "description": "Role of the party in documentation"
-          },
-          "partyDetails": {
-            "$ref": "#/components/schemas/PartyDetails"
-          },
-          "documentSpecificInfo": {
+          {
             "type": "object",
-            "additionalProperties": true,
-            "description": "Additional information specific to documents"
+            "required": ["bookingId", "documentTypes"],
+            "description": "Request for shipping documentation",
+            "properties": {
+              "bookingId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Associated booking identifier"
+              },
+              "documentTypes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["BILL_OF_LADING", "COMMERCIAL_INVOICE", "PACKING_LIST", "CERTIFICATE_OF_ORIGIN"],
+                  "description": "Type of document requested"
+                }
+              },
+              "parties": {
+                "type": "array",
+                "items": {
+                  "$ref": "./tms-api-spec-common.json#/components/schemas/Party"
+                }
+              },
+              "customsDeclaration": {
+                "$ref": "#/components/schemas/CustomsDeclaration"
+              }
+            }
           }
-        }
+        ]
       },
       "CustomsDeclaration": {
-        "type": "object",
-        "required": ["declarationType", "shipmentDetails"],
-        "description": "Customs declaration information",
-        "properties": {
-          "declarationType": {
-            "type": "string",
-            "enum": ["IMPORT", "EXPORT", "TRANSIT", "TEMPORARY"],
-            "description": "Type of customs declaration"
+        "allOf": [
+          {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity"
           },
-          "shipmentDetails": {
-            "$ref": "#/components/schemas/ShipmentDetails"
-          },
-          "commodities": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomsCommodity"
-            }
-          },
-          "customsValue": {
-            "$ref": "#/components/schemas/MonetaryAmount"
-          },
-          "duties": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DutyCalculation"
+          {
+            "type": "object",
+            "required": ["declarationType", "shipper", "consignee"],
+            "description": "Customs declaration information",
+            "properties": {
+              "declarationType": {
+                "type": "string",
+                "enum": ["IMPORT", "EXPORT", "TRANSIT"],
+                "description": "Type of customs declaration"
+              },
+              "shipper": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/Party"
+              },
+              "consignee": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/Party"
+              },
+              "commodities": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CustomsCommodity"
+                }
+              },
+              "totalValue": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+              },
+              "incoterm": {
+                "type": "string",
+                "enum": ["EXW", "FCA", "CPT", "CIP", "DAP", "DPU", "DDP", "FAS", "FOB", "CFR", "CIF"],
+                "description": "Incoterms 2020 rule"
+              }
             }
           }
-        }
-      },
-      "CustomsShipmentDetails": {
-        "type": "object",
-        "required": ["entryType", "customsOffice"],
-        "description": "Details specific to customs processing",
-        "properties": {
-          "entryType": {
-            "type": "string",
-            "enum": ["FORMAL", "INFORMAL", "CARNET", "SECTION_321"],
-            "description": "Type of customs entry"
-          },
-          "customsOffice": {
-            "$ref": "#/components/schemas/CustomsOffice"
-          },
-          "incoterm": {
-            "type": "string",
-            "description": "Applicable Incoterm"
-          },
-          "valuation": {
-            "$ref": "#/components/schemas/CustomsValuation"
-          },
-          "preferences": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Applicable trade preferences or agreements"
-          }
-        }
+        ]
       },
       "CustomsCommodity": {
         "type": "object",
-        "required": ["description", "hsCode", "value"],
+        "required": ["description", "hsCode", "quantity", "value"],
         "description": "Commodity information for customs",
         "properties": {
           "description": {
@@ -183,133 +90,33 @@
             "pattern": "^[0-9]{6,10}$",
             "description": "Harmonized System code"
           },
-          "value": {
-            "$ref": "#/components/schemas/MonetaryAmount"
-          },
-          "countryOfOrigin": {
-            "type": "string",
-            "pattern": "^[A-Z]{2}$",
-            "description": "ISO country code"
-          },
-          "classification": {
-            "$ref": "#/components/schemas/CommodityClassification"
-          }
-        }
-      },
-      "CustomsValuation": {
-        "type": "object",
-        "required": ["method"],
-        "description": "Customs valuation details",
-        "properties": {
-          "method": {
-            "type": "string",
-            "enum": [
-              "TRANSACTION_VALUE",
-              "IDENTICAL_GOODS",
-              "SIMILAR_GOODS",
-              "DEDUCTIVE_VALUE",
-              "COMPUTED_VALUE"
-            ],
-            "description": "Valuation method used"
-          },
-          "adjustments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ValuationAdjustment"
-            }
-          },
-          "relatedPartyTransaction": {
-            "type": "boolean",
-            "description": "Whether transaction is between related parties"
-          }
-        }
-      },
-      "ValuationAdjustment": {
-        "type": "object",
-        "required": ["type", "amount"],
-        "description": "Adjustment to customs value",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "PACKING_COSTS",
-              "COMMISSIONS",
-              "ASSISTS",
-              "ROYALTIES",
-              "TRANSPORT_COSTS",
-              "INSURANCE"
-            ],
-            "description": "Type of adjustment"
-          },
-          "amount": {
-            "$ref": "#/components/schemas/MonetaryAmount"
-          },
-          "direction": {
-            "type": "string",
-            "enum": ["ADD", "DEDUCT"],
-            "description": "Whether to add or deduct"
-          }
-        }
-      },
-      "DutyCalculation": {
-        "type": "object",
-        "required": ["type", "rate", "amount"],
-        "description": "Duty or tax calculation",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": ["DUTY", "VAT", "EXCISE", "OTHER"],
-            "description": "Type of duty or tax"
-          },
-          "rate": {
+          "quantity": {
             "type": "number",
             "minimum": 0,
-            "description": "Rate as percentage"
+            "description": "Quantity of goods"
           },
-          "amount": {
-            "$ref": "#/components/schemas/MonetaryAmount"
-          },
-          "direction": {
+          "unit": {
             "type": "string",
-            "enum": ["ADD", "DEDUCT"],
-            "description": "Whether to add or deduct"
+            "description": "Unit of measurement"
+          },
+          "value": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+          },
+          "originCountry": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$",
+            "description": "Country of origin (ISO code)"
           }
         }
       },
-      "CommodityClassification": {
+      "CustomsRequirement": {
         "type": "object",
-        "description": "Detailed commodity classification",
+        "description": "Customs requirement information",
         "properties": {
-          "hsCode": {
+          "documentType": {
             "type": "string",
-            "pattern": "^[0-9]{6,10}$",
-            "description": "Harmonized System code"
-          },
-          "eccn": {
-            "type": "string",
-            "description": "Export Control Classification Number"
-          },
-          "scheduleB": {
-            "type": "string",
-            "description": "Schedule B number"
-          },
-          "restrictions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CommodityRestriction"
-            }
-          }
-        }
-      },
-      "CommodityRestriction": {
-        "type": "object",
-        "required": ["type", "authority"],
-        "description": "Import/export restrictions",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": ["LICENSE_REQUIRED", "PROHIBITED", "CONTROLLED", "QUOTA"],
-            "description": "Type of restriction"
+            "enum": ["IMPORT_LICENSE", "EXPORT_LICENSE", "CERTIFICATE_OF_ORIGIN", "PHYTOSANITARY_CERTIFICATE"],
+            "description": "Required document type"
           },
           "authority": {
             "type": "string",
@@ -321,6 +128,30 @@
           },
           "licenseDetails": {
             "$ref": "#/components/schemas/LicenseDetails"
+          }
+        }
+      },
+      "LicenseDetails": {
+        "type": "object",
+        "description": "License details for customs",
+        "properties": {
+          "licenseNumber": {
+            "type": "string",
+            "description": "License identification number"
+          },
+          "validityPeriod": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/DateRange"
+          },
+          "issuingAuthority": {
+            "type": "string",
+            "description": "Authority that issued the license"
+          },
+          "restrictions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "License restrictions or conditions"
           }
         }
       }

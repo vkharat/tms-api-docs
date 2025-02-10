@@ -174,6 +174,195 @@
             "description": "Source of exchange rate data"
           }
         }
+      },
+      "Location": {
+        "type": "object",
+        "required": ["locationId", "type"],
+        "description": "Location information",
+        "properties": {
+          "locationId": {
+            "type": "string",
+            "description": "Unique location identifier"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["PORT", "TERMINAL", "WAREHOUSE", "DEPOT", "ADDRESS"],
+            "description": "Type of location"
+          },
+          "name": {
+            "type": "string",
+            "description": "Location name"
+          },
+          "code": {
+            "type": "string",
+            "description": "Location code (e.g., UN/LOCODE)"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "coordinates": {
+            "type": "object",
+            "properties": {
+              "latitude": {
+                "type": "number",
+                "minimum": -90,
+                "maximum": 90
+              },
+              "longitude": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              }
+            }
+          }
+        }
+      },
+      "Address": {
+        "type": "object",
+        "required": ["country"],
+        "description": "Physical address",
+        "properties": {
+          "street": {
+            "type": "string",
+            "description": "Street address"
+          },
+          "city": {
+            "type": "string",
+            "description": "City name"
+          },
+          "state": {
+            "type": "string",
+            "description": "State or province"
+          },
+          "postalCode": {
+            "type": "string",
+            "description": "Postal or ZIP code"
+          },
+          "country": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$",
+            "description": "ISO country code"
+          }
+        }
+      },
+      "Party": {
+        "type": "object",
+        "required": ["partyId", "name"],
+        "description": "Party information",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "description": "Unique identifier for the party"
+          },
+          "name": {
+            "type": "string",
+            "description": "Party name"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["SHIPPER", "CONSIGNEE", "FREIGHT_FORWARDER", "CUSTOMS_BROKER"],
+            "description": "Type of party"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "contact": {
+            "$ref": "#/components/schemas/Contact"
+          }
+        }
+      },
+      "TimeWindow": {
+        "type": "object",
+        "required": ["start", "end"],
+        "description": "Time window with start and end times",
+        "properties": {
+          "start": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
+            "description": "Start time (HH:mm)"
+          },
+          "end": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
+            "description": "End time (HH:mm)"
+          }
+        }
+      },
+      "OperatingSchedule": {
+        "type": "object",
+        "description": "Operating schedule information",
+        "properties": {
+          "weekdays": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TimeWindow"
+            }
+          },
+          "exceptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleException"
+            }
+          }
+        }
+      },
+      "ScheduleException": {
+        "type": "object",
+        "required": ["date", "type"],
+        "description": "Exception to regular schedule",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "Exception date"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["HOLIDAY", "SPECIAL_HOURS", "CLOSED"],
+            "description": "Type of exception"
+          },
+          "hours": {
+            "$ref": "#/components/schemas/TimeWindow"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the exception"
+          }
+        }
+      },
+      "BaseEntity": {
+        "type": "object",
+        "required": ["id", "type", "status", "createdAt"],
+        "description": "Base entity pattern for all major resources",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier"
+          },
+          "type": {
+            "type": "string",
+            "description": "Entity type"
+          },
+          "status": {
+            "type": "string",
+            "description": "Current status"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Additional metadata"
+          }
+        }
       }
     }
   }

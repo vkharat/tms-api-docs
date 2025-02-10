@@ -2,226 +2,127 @@
   "components": {
     "schemas": {
       "MasterDataRecord": {
-        "type": "object",
-        "required": ["recordId", "type", "status"],
-        "description": "Base structure for master data records",
-        "properties": {
-          "recordId": {
-            "type": "string",
-            "description": "Unique identifier for the record"
-          },
-          "type": {
-            "type": "string",
-            "enum": ["EQUIPMENT", "LOCATION", "CARRIER", "SERVICE", "ROUTE", "COMMODITY"],
-            "description": "Type of master data"
-          },
-          "status": {
-            "type": "string",
-            "enum": ["ACTIVE", "INACTIVE", "PENDING", "ARCHIVED"],
-            "description": "Current record status"
-          },
-          "validityPeriod": {
-            "$ref": "#/components/schemas/DateRange"
-          },
-          "version": {
-            "$ref": "#/components/schemas/VersionInfo"
-          },
-          "metadata": {
-            "$ref": "#/components/schemas/MasterDataMetadata"
-          },
-          "auditTrail": {
-            "$ref": "#/components/schemas/AuditTrail"
-          }
-        }
-      },
-      "EquipmentMaster": {
-        "type": "object",
-        "required": ["equipmentType", "specifications"],
-        "description": "Equipment master data",
         "allOf": [
           {
-            "$ref": "#/components/schemas/MasterDataRecord"
+            "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity"
           },
           {
+            "type": "object",
+            "required": ["type"],
+            "description": "Base structure for master data records",
             "properties": {
-              "equipmentType": {
+              "type": {
                 "type": "string",
-                "enum": [
-                  "CONTAINER_20",
-                  "CONTAINER_40",
-                  "CONTAINER_40HC",
-                  "TRAILER",
-                  "CHASSIS",
-                  "VESSEL"
-                ],
-                "description": "Type of equipment"
+                "enum": ["EQUIPMENT", "LOCATION", "CARRIER", "SERVICE", "ROUTE", "COMMODITY"],
+                "description": "Type of master data"
               },
-              "specifications": {
-                "$ref": "#/components/schemas/EquipmentSpecifications"
+              "validityPeriod": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/DateRange"
               },
-              "maintenance": {
-                "$ref": "#/components/schemas/MaintenanceSchedule"
-              },
-              "certifications": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Certification"
-                }
+              "metadata": {
+                "$ref": "#/components/schemas/RecordMetadata"
               }
             }
           }
         ]
       },
-      "LocationMaster": {
+      "RecordMetadata": {
         "type": "object",
-        "required": ["locationType", "address"],
-        "description": "Location master data",
+        "description": "Metadata for master data record",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Record creation timestamp"
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "User who created the record"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp"
+          },
+          "updatedBy": {
+            "type": "string",
+            "description": "User who last updated the record"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Record version number"
+          }
+        }
+      },
+      "LocationMasterData": {
         "allOf": [
           {
             "$ref": "#/components/schemas/MasterDataRecord"
           },
           {
             "properties": {
-              "locationType": {
-                "type": "string",
-                "enum": ["PORT", "TERMINAL", "WAREHOUSE", "DEPOT", "YARD"],
-                "description": "Type of location"
+              "location": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
               },
-              "codes": {
-                "$ref": "#/components/schemas/LocationCodes"
-              },
-              "address": {
-                "$ref": "#/components/schemas/Address"
+              "operatingSchedule": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/OperatingSchedule"
               },
               "facilities": {
                 "type": "array",
                 "items": {
                   "$ref": "#/components/schemas/Facility"
                 }
-              },
-              "operatingHours": {
-                "$ref": "#/components/schemas/OperatingSchedule"
               }
             }
           }
         ]
       },
-      "ServiceCatalog": {
+      "Facility": {
         "type": "object",
-        "required": ["serviceType", "serviceDefinition"],
-        "description": "Service offering master data",
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/MasterDataRecord"
-          },
-          {
-            "properties": {
-              "serviceType": {
-                "type": "string",
-                "enum": ["OCEAN", "AIR", "ROAD", "RAIL", "CUSTOMS", "WAREHOUSE"],
-                "description": "Type of service"
-              },
-              "serviceDefinition": {
-                "$ref": "#/components/schemas/ServiceDefinition"
-              },
-              "coverage": {
-                "$ref": "#/components/schemas/ServiceCoverage"
-              },
-              "requirements": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/ServiceRequirement"
-                }
-              }
-            }
-          }
-        ]
-      },
-      "RouteMaster": {
-        "type": "object",
-        "required": ["routeType", "segments"],
-        "description": "Standard route master data",
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/MasterDataRecord"
-          },
-          {
-            "properties": {
-              "routeType": {
-                "type": "string",
-                "enum": ["DIRECT", "FEEDER", "MAINLINE", "INTERMODAL"],
-                "description": "Type of route"
-              },
-              "segments": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/RouteSegment"
-                }
-              },
-              "schedules": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/ServiceSchedule"
-                }
-              },
-              "restrictions": {
-                "$ref": "#/components/schemas/RouteRestrictions"
-              }
-            }
-          }
-        ]
-      },
-      "ReferenceData": {
-        "type": "object",
-        "required": ["category", "code", "value"],
-        "description": "Reference data management",
+        "required": ["type"],
+        "description": "Facility information",
         "properties": {
-          "category": {
+          "type": {
             "type": "string",
-            "description": "Reference data category"
+            "enum": ["WAREHOUSE", "CONTAINER_YARD", "LOADING_DOCK", "PARKING"],
+            "description": "Type of facility"
           },
-          "code": {
-            "type": "string",
-            "description": "Reference code"
+          "capacity": {
+            "type": "object",
+            "properties": {
+              "unit": {
+                "type": "string",
+                "description": "Capacity unit"
+              },
+              "value": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Capacity value"
+              }
+            }
           },
-          "value": {
-            "type": "string",
-            "description": "Reference value"
-          },
-          "hierarchy": {
+          "features": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Hierarchical structure"
-          },
-          "mappings": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CodeMapping"
-            }
-          },
-          "validations": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ValidationRule"
-            }
+            "description": "Facility features"
           }
         }
       },
       "ValidationRule": {
         "type": "object",
-        "required": ["ruleType", "expression"],
+        "required": ["field", "rule"],
         "description": "Data validation rule",
         "properties": {
-          "ruleType": {
+          "field": {
             "type": "string",
-            "enum": ["FORMAT", "RANGE", "DEPENDENCY", "UNIQUENESS"],
-            "description": "Type of validation rule"
+            "description": "Field to validate"
           },
-          "expression": {
+          "rule": {
             "type": "string",
-            "description": "Rule expression"
+            "description": "Validation rule expression"
           },
           "errorMessage": {
             "type": "string",

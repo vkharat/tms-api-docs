@@ -2,186 +2,104 @@
   "components": {
     "schemas": {
       "Contract": {
-        "type": "object",
-        "required": ["contractId", "parties", "terms", "validityPeriod"],
-        "description": "Service contract between parties",
-        "properties": {
-          "contractId": {
-            "type": "string",
-            "description": "Unique contract identifier"
+        "allOf": [
+          {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity"
           },
-          "contractType": {
-            "type": "string",
-            "enum": ["SERVICE_CONTRACT", "VOLUME_AGREEMENT", "SPOT_AGREEMENT", "FRAMEWORK_AGREEMENT"],
-            "description": "Type of contract"
-          },
-          "parties": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ContractParty"
-            },
-            "description": "Parties involved in the contract"
-          },
-          "terms": {
-            "$ref": "#/components/schemas/ContractTerms"
-          },
-          "validityPeriod": {
-            "$ref": "#/components/schemas/DateRange"
-          },
-          "serviceAreas": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ServiceArea"
-            },
-            "description": "Geographic areas covered by the contract"
-          },
-          "sla": {
-            "$ref": "#/components/schemas/ServiceLevelAgreement"
-          },
-          "amendments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ContractAmendment"
-            },
-            "description": "History of contract amendments"
-          }
-        }
-      },
-      "ContractParty": {
-        "type": "object",
-        "required": ["role", "partyId"],
-        "description": "Party to the contract",
-        "properties": {
-          "role": {
-            "type": "string",
-            "enum": ["SERVICE_PROVIDER", "CUSTOMER", "AGENT", "GUARANTOR"],
-            "description": "Role in the contract"
-          },
-          "partyId": {
-            "type": "string",
-            "description": "Unique identifier for the party"
-          },
-          "partyDetails": {
-            "$ref": "#/components/schemas/PartyDetails"
-          },
-          "obligations": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ContractObligation"
+          {
+            "type": "object",
+            "required": ["parties", "validityPeriod"],
+            "description": "Transportation service contract",
+            "properties": {
+              "parties": {
+                "type": "array",
+                "items": {
+                  "$ref": "./tms-api-spec-common.json#/components/schemas/Party"
+                }
+              },
+              "validityPeriod": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/DateRange"
+              },
+              "terms": {
+                "$ref": "#/components/schemas/ContractTerms"
+              },
+              "rates": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ContractRate"
+                }
+              }
             }
           }
-        }
+        ]
       },
       "ContractTerms": {
         "type": "object",
-        "required": ["effectiveDate", "expirationDate"],
-        "description": "Terms and conditions of the contract",
+        "description": "Contract terms and conditions",
         "properties": {
-          "effectiveDate": {
-            "type": "string",
-            "format": "date",
-            "description": "When the contract becomes effective"
-          },
-          "expirationDate": {
-            "type": "string",
-            "format": "date",
-            "description": "When the contract expires"
-          },
-          "renewalTerms": {
-            "$ref": "#/components/schemas/RenewalTerms"
-          },
           "paymentTerms": {
-            "$ref": "#/components/schemas/PaymentTerms"
+            "type": "string",
+            "enum": ["PREPAID", "COLLECT", "CREDIT"],
+            "description": "Payment terms"
           },
-          "specialConditions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Special conditions or notes"
+          "creditLimit": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+          },
+          "paymentDuration": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/Duration"
+          },
+          "serviceLevel": {
+            "type": "string",
+            "enum": ["STANDARD", "EXPRESS", "PREMIUM"],
+            "description": "Service level agreement"
           }
         }
       },
-      "ServiceLevelAgreement": {
+      "ContractRate": {
         "type": "object",
-        "required": ["metrics", "penalties"],
-        "description": "Service level agreement details",
+        "required": ["origin", "destination", "rateType", "amount"],
+        "description": "Contract rate for a specific route",
         "properties": {
-          "metrics": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SLAMetric"
-            }
+          "origin": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
           },
-          "penalties": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SLAPenalty"
-            }
+          "destination": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
           },
-          "escalationProcess": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EscalationLevel"
-            }
-          },
-          "reportingFrequency": {
+          "rateType": {
             "type": "string",
-            "enum": ["DAILY", "WEEKLY", "MONTHLY", "QUARTERLY"],
-            "description": "Frequency of SLA reporting"
+            "enum": ["PER_CONTAINER", "PER_KG", "PER_CBM", "FLAT_RATE"],
+            "description": "Type of rate"
+          },
+          "amount": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RateCondition"
+            }
           }
         }
       },
-      "ContractAmendment": {
+      "RateCondition": {
         "type": "object",
-        "required": ["amendmentId", "effectiveDate", "changes"],
-        "description": "Amendment to the original contract",
+        "required": ["type", "value"],
+        "description": "Condition for rate application",
         "properties": {
-          "amendmentId": {
+          "type": {
             "type": "string",
-            "description": "Unique identifier for the amendment"
+            "enum": ["MIN_QUANTITY", "MAX_QUANTITY", "EQUIPMENT_TYPE", "COMMODITY_TYPE"],
+            "description": "Type of condition"
           },
-          "effectiveDate": {
+          "value": {
             "type": "string",
-            "format": "date",
-            "description": "When the amendment takes effect"
+            "description": "Condition value"
           },
-          "changes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ContractChange"
-            }
-          },
-          "approvalStatus": {
+          "operator": {
             "type": "string",
-            "enum": ["PENDING", "APPROVED", "REJECTED"],
-            "description": "Status of amendment approval"
-          }
-        }
-      },
-      "SLAMetric": {
-        "type": "object",
-        "required": ["name", "target", "unit"],
-        "description": "Service level metric definition",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Name of the metric"
-          },
-          "target": {
-            "type": "number",
-            "description": "Target value for the metric"
-          },
-          "unit": {
-            "type": "string",
-            "description": "Unit of measurement"
-          },
-          "measurementPeriod": {
-            "$ref": "#/components/schemas/Duration"
-          },
-          "calculationMethod": {
-            "type": "string",
-            "description": "How the metric is calculated"
+            "enum": ["EQUALS", "GREATER_THAN", "LESS_THAN", "BETWEEN"],
+            "description": "Comparison operator"
           }
         }
       }

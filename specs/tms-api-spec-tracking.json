@@ -1,317 +1,187 @@
 {
   "components": {
     "schemas": {
-      "TrackingStatus": {
-        "type": "object",
-        "required": ["trackingId", "status", "lastUpdate"],
-        "description": "Current tracking status of a shipment",
-        "properties": {
-          "trackingId": {
-            "type": "string",
-            "description": "Unique tracking identifier",
-            "example": "MAEU9876543"
-          },
-          "referenceNumbers": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReferenceNumber"
-            },
-            "description": "Associated reference numbers"
-          },
-          "status": {
-            "$ref": "#/components/schemas/ShipmentStatus"
-          },
-          "lastUpdate": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of last status update"
-          },
-          "currentLocation": {
-            "$ref": "#/components/schemas/Location"
-          },
-          "plannedSchedule": {
-            "$ref": "#/components/schemas/Schedule"
-          },
-          "actualSchedule": {
-            "$ref": "#/components/schemas/Schedule"
-          },
-          "events": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TrackingEvent"
-            },
-            "description": "Chronological list of tracking events"
-          },
-          "exceptions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ShipmentException"
-            },
-            "description": "Any exceptions or issues"
-          }
-        }
-      },
-      "ReferenceNumber": {
-        "type": "object",
-        "required": ["type", "value"],
-        "description": "Reference number associated with the shipment",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "BOOKING_NUMBER",
-              "BILL_OF_LADING",
-              "CONTAINER_NUMBER",
-              "CUSTOMER_REFERENCE",
-              "PO_NUMBER"
-            ],
-            "description": "Type of reference number"
-          },
-          "value": {
-            "type": "string",
-            "description": "The reference number value"
-          },
-          "issuer": {
-            "type": "string",
-            "description": "Entity that issued the reference number"
-          }
-        }
-      },
-      "ShipmentStatus": {
-        "type": "object",
-        "required": ["code", "timestamp"],
-        "description": "Status information for the shipment",
-        "properties": {
-          "code": {
-            "type": "string",
-            "enum": [
-              "BOOKING_RECEIVED",
-              "BOOKING_CONFIRMED",
-              "EMPTY_CONTAINER_RELEASE",
-              "GATE_IN_EMPTY",
-              "STUFFING_COMPLETED",
-              "GATE_IN_FULL",
-              "LOADED_ON_VESSEL",
-              "VESSEL_DEPARTED",
-              "VESSEL_ARRIVED",
-              "DISCHARGED",
-              "GATE_OUT_FULL",
-              "DELIVERED_TO_CONSIGNEE",
-              "EMPTY_CONTAINER_RETURNED"
-            ],
-            "description": "Standardized status code"
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When this status was recorded"
-          },
-          "location": {
-            "$ref": "#/components/schemas/Location"
-          },
-          "statusCategory": {
-            "type": "string",
-            "enum": ["PLANNED", "IN_PROGRESS", "COMPLETED", "EXCEPTION"],
-            "description": "Category of the status"
-          }
-        }
-      },
-      "Schedule": {
-        "type": "object",
-        "description": "Schedule information for the shipment",
-        "properties": {
-          "origin": {
-            "$ref": "#/components/schemas/SchedulePoint"
-          },
-          "destination": {
-            "$ref": "#/components/schemas/SchedulePoint"
-          },
-          "transitPoints": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TransitPoint"
-            },
-            "description": "Intermediate points in the journey"
-          },
-          "totalTransitTime": {
-            "$ref": "#/components/schemas/Duration"
-          },
-          "delays": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Delay"
-            }
-          }
-        }
-      },
-      "SchedulePoint": {
-        "type": "object",
-        "required": ["location", "plannedTime"],
-        "description": "Schedule information for a location",
-        "properties": {
-          "location": {
-            "$ref": "#/components/schemas/Location"
-          },
-          "plannedTime": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Planned date/time"
-          },
-          "actualTime": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Actual date/time if occurred"
-          },
-          "cutoffTimes": {
-            "$ref": "#/components/schemas/CutoffTimes"
-          }
-        }
-      },
-      "TransitPoint": {
-        "type": "object",
-        "description": "Information about a transit point",
+      "TrackingInfo": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/SchedulePoint"
+            "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity"
           },
           {
+            "type": "object",
+            "required": ["currentLocation"],
+            "description": "Shipment tracking information",
             "properties": {
-              "transitType": {
-                "type": "string",
-                "enum": ["PORT_CALL", "TRANSSHIPMENT", "RAIL_RAMP", "STOPOVER"],
-                "description": "Type of transit point"
+              "currentLocation": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
               },
-              "vesselChange": {
-                "type": "boolean",
-                "description": "Whether vessel/vehicle changes at this point"
+              "estimatedDelivery": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/DateRange"
               },
-              "operations": {
+              "events": {
                 "type": "array",
                 "items": {
-                  "type": "string",
-                  "enum": ["DISCHARGE", "LOAD", "CUSTOMS", "MAINTENANCE"]
-                },
-                "description": "Operations occurring at this point"
+                  "$ref": "#/components/schemas/TrackingEvent"
+                }
+              },
+              "delays": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/DelayInfo"
+                }
               }
             }
           }
         ]
       },
-      "TrackingEvent": {
+      "ShipmentStatus": {
         "type": "object",
-        "required": ["eventType", "timestamp", "location"],
-        "description": "Event in the shipment's journey",
+        "required": ["code", "timestamp"],
+        "description": "Current status of the shipment",
         "properties": {
-          "eventType": {
+          "code": {
             "type": "string",
             "enum": [
-              "CONTAINER_RELEASE",
-              "GATE_IN",
-              "LOADED",
-              "DEPARTED",
-              "ARRIVED",
-              "DISCHARGED",
-              "CUSTOMS_HOLD",
-              "CUSTOMS_RELEASE",
-              "GATE_OUT",
-              "EMPTY_RETURN"
+              "BOOKED",
+              "PICKED_UP",
+              "IN_TRANSIT",
+              "CUSTOMS",
+              "DELIVERED",
+              "EXCEPTION"
             ],
-            "description": "Type of event"
+            "description": "Status code"
           },
           "timestamp": {
             "type": "string",
             "format": "date-time",
-            "description": "When the event occurred"
-          },
-          "location": {
-            "$ref": "#/components/schemas/Location"
-          },
-          "performer": {
-            "$ref": "#/components/schemas/EventPerformer"
+            "description": "Status timestamp"
           },
           "details": {
             "type": "string",
-            "description": "Additional event details"
-          },
-          "relatedDocuments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Document"
-            }
+            "description": "Additional status details"
           }
         }
       },
-      "ShipmentException": {
+      "TrackingEvent": {
+        "allOf": [
+          {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity"
+          },
+          {
+            "type": "object",
+            "required": ["eventType", "location"],
+            "description": "Tracking event information",
+            "properties": {
+              "eventType": {
+                "type": "string",
+                "enum": [
+                  "PICKUP",
+                  "DEPARTURE",
+                  "ARRIVAL",
+                  "CUSTOMS_CLEARANCE",
+                  "DELIVERY",
+                  "EXCEPTION"
+                ],
+                "description": "Type of event"
+              },
+              "location": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
+              },
+              "description": {
+                "type": "string",
+                "description": "Event description"
+              },
+              "documents": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/EventDocument"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "EventDocument": {
         "type": "object",
-        "required": ["type", "severity", "timestamp"],
-        "description": "Exception or issue with the shipment",
+        "required": ["type", "url"],
+        "description": "Document associated with tracking event",
         "properties": {
           "type": {
             "type": "string",
             "enum": [
-              "CUSTOMS_HOLD",
-              "DOCUMENTATION_ISSUE",
-              "WEATHER_DELAY",
-              "VESSEL_DELAY",
-              "ROAD_DELAY",
-              "SECURITY_HOLD"
+              "POD",
+              "CUSTOMS_DECLARATION",
+              "INSPECTION_REPORT",
+              "EXCEPTION_REPORT"
             ],
-            "description": "Type of exception"
+            "description": "Document type"
           },
-          "severity": {
+          "url": {
             "type": "string",
-            "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
-            "description": "Severity of the exception"
+            "format": "uri",
+            "description": "Document URL"
           },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the exception occurred"
-          },
-          "description": {
-            "type": "string",
-            "description": "Detailed description of the exception"
-          },
-          "estimatedResolution": {
+          "issuedAt": {
             "type": "string",
             "format": "date-time",
-            "description": "Expected resolution time"
+            "description": "Document issuance timestamp"
           },
-          "resolutionSteps": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Steps being taken to resolve the exception"
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Document expiration timestamp"
           }
         }
       },
-      "Delay": {
+      "DelayInfo": {
         "type": "object",
-        "required": ["reason", "duration"],
-        "description": "Information about a delay",
+        "required": ["type", "duration"],
+        "description": "Delay information",
         "properties": {
-          "reason": {
+          "type": {
             "type": "string",
             "enum": [
               "WEATHER",
-              "PORT_CONGESTION",
-              "CUSTOMS_INSPECTION",
-              "TECHNICAL_ISSUE",
-              "OPERATIONAL_DELAY"
+              "CUSTOMS",
+              "TECHNICAL",
+              "OPERATIONAL",
+              "FORCE_MAJEURE"
             ],
-            "description": "Reason for the delay"
+            "description": "Type of delay"
           },
           "duration": {
-            "$ref": "#/components/schemas/Duration"
+            "$ref": "./tms-api-spec-common.json#/components/schemas/Duration"
           },
-          "impactAssessment": {
+          "reason": {
             "type": "string",
-            "description": "Assessment of delay impact"
+            "description": "Detailed reason for delay"
           },
-          "mitigationPlan": {
+          "impact": {
             "type": "string",
-            "description": "Plans to mitigate the delay"
+            "enum": ["LOW", "MEDIUM", "HIGH", "SEVERE"],
+            "description": "Impact level of delay"
+          },
+          "resolution": {
+            "$ref": "#/components/schemas/DelayResolution"
+          }
+        }
+      },
+      "DelayResolution": {
+        "type": "object",
+        "description": "Resolution information for delay",
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "Action taken to resolve delay"
+          },
+          "estimatedResolutionTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Expected resolution timestamp"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "IN_PROGRESS", "RESOLVED", "ESCALATED"],
+            "description": "Resolution status"
           }
         }
       }
