@@ -1,0 +1,294 @@
+{
+  "components": {
+    "schemas": {
+      "MonetaryAmount": {
+        "type": "object",
+        "required": ["value", "currency"],
+        "description": "Monetary amount in a specific currency",
+        "properties": {
+          "value": {
+            "type": "number",
+            "format": "double",
+            "description": "Monetary value",
+            "example": 1250.50
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency code",
+            "example": "USD"
+          }
+        }
+      },
+      "Duration": {
+        "type": "object",
+        "required": ["value", "unit"],
+        "description": "Time duration",
+        "properties": {
+          "value": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Duration value",
+            "example": 14
+          },
+          "unit": {
+            "type": "string",
+            "enum": ["MINUTES", "HOURS", "DAYS", "WEEKS"],
+            "description": "Time unit"
+          }
+        }
+      },
+      "Distance": {
+        "type": "object",
+        "required": ["value", "unit"],
+        "description": "Distance measurement",
+        "properties": {
+          "value": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Distance value",
+            "example": 5280
+          },
+          "unit": {
+            "type": "string",
+            "enum": ["KM", "MI", "NM"],
+            "description": "Distance unit (kilometers, miles, nautical miles)"
+          }
+        }
+      },
+      "FreeTimeDetail": {
+        "type": "object",
+        "description": "Free time details for a specific location",
+        "properties": {
+          "duration": {
+            "$ref": "#/components/schemas/Duration"
+          },
+          "startTrigger": {
+            "type": "string",
+            "enum": ["DISCHARGE", "GATE_IN", "GATE_OUT"],
+            "description": "Event that starts the free time period"
+          },
+          "includesWeekends": {
+            "type": "boolean",
+            "description": "Whether weekends are included in free time calculation",
+            "default": true
+          },
+          "includesHolidays": {
+            "type": "boolean",
+            "description": "Whether holidays are included in free time calculation",
+            "default": false
+          }
+        }
+      },
+      "ServiceRestrictions": {
+        "type": "object",
+        "description": "Restrictions and limitations for the service",
+        "properties": {
+          "weightLimits": {
+            "$ref": "#/components/schemas/WeightLimits"
+          },
+          "dimensionLimits": {
+            "$ref": "#/components/schemas/DimensionLimits"
+          },
+          "cargoRestrictions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "NO_DANGEROUS_GOODS",
+                "NO_TEMPERATURE_CONTROLLED",
+                "NO_OVERSIZED",
+                "NO_VALUABLE_CARGO",
+                "NO_LIVESTOCK"
+              ]
+            },
+            "description": "List of cargo restrictions"
+          },
+          "specialRequirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Special requirements for this service"
+          }
+        }
+      },
+      "WeightLimits": {
+        "type": "object",
+        "description": "Weight limitations",
+        "properties": {
+          "maxGrossWeight": {
+            "$ref": "#/components/schemas/Weight"
+          },
+          "maxPayloadWeight": {
+            "$ref": "#/components/schemas/Weight"
+          },
+          "minWeight": {
+            "$ref": "#/components/schemas/Weight"
+          }
+        }
+      },
+      "DimensionLimits": {
+        "type": "object",
+        "description": "Dimensional limitations",
+        "properties": {
+          "maxLength": {
+            "$ref": "#/components/schemas/Length"
+          },
+          "maxWidth": {
+            "$ref": "#/components/schemas/Length"
+          },
+          "maxHeight": {
+            "$ref": "#/components/schemas/Length"
+          },
+          "maxVolume": {
+            "$ref": "#/components/schemas/Volume"
+          }
+        }
+      },
+      "Length": {
+        "type": "object",
+        "required": ["value", "unit"],
+        "description": "Length measurement",
+        "properties": {
+          "value": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Length value",
+            "example": 40
+          },
+          "unit": {
+            "type": "string",
+            "enum": ["CM", "IN", "M", "FT"],
+            "description": "Length unit"
+          }
+        }
+      },
+      "Volume": {
+        "type": "object",
+        "required": ["value", "unit"],
+        "description": "Volume measurement",
+        "properties": {
+          "value": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Volume value",
+            "example": 67.5
+          },
+          "unit": {
+            "type": "string",
+            "enum": ["CBM", "CFT", "L"],
+            "description": "Volume unit (cubic meters, cubic feet, liters)"
+          }
+        }
+      },
+      "CapacityDetails": {
+        "type": "object",
+        "description": "Equipment and space availability information",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["AVAILABLE", "LIMITED", "WAITLIST", "FULL"],
+            "description": "Current capacity status"
+          },
+          "availableUnits": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of units available",
+            "example": 5
+          },
+          "nextAvailability": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Next date when capacity becomes available"
+          },
+          "restrictions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Any capacity-related restrictions"
+          }
+        }
+      },
+      "ReferenceData": {
+        "type": "object",
+        "description": "Reference numbers and identifiers",
+        "properties": {
+          "bookingReference": {
+            "type": "string",
+            "description": "Booking reference number",
+            "example": "BOOK123456"
+          },
+          "customerReference": {
+            "type": "string",
+            "description": "Customer's reference number",
+            "example": "PO-987654"
+          },
+          "contractNumber": {
+            "type": "string",
+            "description": "Contract or agreement number",
+            "example": "CONT-2025-001"
+          }
+        }
+      },
+      "Contact": {
+        "type": "object",
+        "description": "Contact information",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Contact person's name"
+          },
+          "role": {
+            "type": "string",
+            "description": "Contact person's role"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address"
+          },
+          "phone": {
+            "type": "string",
+            "pattern": "^\\+?[1-9]\\d{1,14}$",
+            "description": "Phone number in E.164 format"
+          },
+          "availableHours": {
+            "$ref": "#/components/schemas/OperatingSchedule"
+          }
+        }
+      },
+      "ExchangeRate": {
+        "type": "object",
+        "required": ["fromCurrency", "toCurrency", "rate", "date"],
+        "description": "Currency exchange rate information",
+        "properties": {
+          "fromCurrency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "Source currency code"
+          },
+          "toCurrency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "Target currency code"
+          },
+          "rate": {
+            "type": "number",
+            "description": "Exchange rate value"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "Date of the exchange rate"
+          },
+          "source": {
+            "type": "string",
+            "description": "Source of exchange rate data"
+          }
+        }
+      }
+    }
+  }
+}

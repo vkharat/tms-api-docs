@@ -1,0 +1,289 @@
+{
+  "components": {
+    "schemas": {
+      "PartnerIntegration": {
+        "type": "object",
+        "required": ["partnerId", "integrationType", "status"],
+        "description": "Configuration for partner system integration",
+        "properties": {
+          "partnerId": {
+            "type": "string",
+            "description": "Unique identifier for the partner"
+          },
+          "integrationType": {
+            "type": "string",
+            "enum": ["CARRIER", "CUSTOMS_BROKER", "TERMINAL_OPERATOR", "WAREHOUSE", "FREIGHT_FORWARDER"],
+            "description": "Type of integration partner"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "INACTIVE", "TESTING", "SUSPENDED"],
+            "description": "Current integration status"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IntegrationCapability"
+            }
+          },
+          "endpoints": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IntegrationEndpoint"
+            }
+          },
+          "authentication": {
+            "$ref": "#/components/schemas/AuthenticationConfig"
+          },
+          "messageFormats": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MessageFormat"
+            }
+          },
+          "errorHandling": {
+            "$ref": "#/components/schemas/ErrorHandlingConfig"
+          }
+        }
+      },
+      "IntegrationCapability": {
+        "type": "object",
+        "required": ["capability", "status"],
+        "description": "Specific integration capability",
+        "properties": {
+          "capability": {
+            "type": "string",
+            "enum": [
+              "RATES_QUERY",
+              "BOOKING",
+              "TRACKING",
+              "DOCUMENTATION",
+              "CAPACITY",
+              "SCHEDULE",
+              "CUSTOMS_STATUS"
+            ],
+            "description": "Type of capability"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["AVAILABLE", "UNAVAILABLE", "DEGRADED"],
+            "description": "Current capability status"
+          },
+          "version": {
+            "type": "string",
+            "description": "Version of the capability"
+          },
+          "configurations": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Capability-specific configurations"
+          }
+        }
+      },
+      "IntegrationEndpoint": {
+        "type": "object",
+        "required": ["endpointId", "url", "method"],
+        "description": "Integration endpoint configuration",
+        "properties": {
+          "endpointId": {
+            "type": "string",
+            "description": "Unique identifier for the endpoint"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Endpoint URL"
+          },
+          "method": {
+            "type": "string",
+            "enum": ["GET", "POST", "PUT", "DELETE"],
+            "description": "HTTP method"
+          },
+          "headers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Required headers"
+          },
+          "rateLimit": {
+            "$ref": "#/components/schemas/RateLimit"
+          },
+          "timeout": {
+            "type": "integer",
+            "description": "Timeout in seconds"
+          }
+        }
+      },
+      "MessageFormat": {
+        "type": "object",
+        "required": ["format", "version"],
+        "description": "Message format configuration",
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": ["JSON", "XML", "EDI", "FLAT_FILE"],
+            "description": "Message format type"
+          },
+          "version": {
+            "type": "string",
+            "description": "Format version"
+          },
+          "schema": {
+            "type": "string",
+            "description": "Schema definition or reference"
+          },
+          "mappings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldMapping"
+            }
+          },
+          "validation": {
+            "$ref": "#/components/schemas/ValidationRules"
+          }
+        }
+      },
+      "FieldMapping": {
+        "type": "object",
+        "required": ["source", "target"],
+        "description": "Field mapping configuration",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "Source field path"
+          },
+          "target": {
+            "type": "string",
+            "description": "Target field path"
+          },
+          "transformation": {
+            "type": "string",
+            "description": "Transformation rule or function"
+          },
+          "defaultValue": {
+            "type": "string",
+            "description": "Default value if source is missing"
+          }
+        }
+      },
+      "ErrorHandlingConfig": {
+        "type": "object",
+        "description": "Error handling configuration",
+        "properties": {
+          "retryPolicy": {
+            "$ref": "#/components/schemas/RetryPolicy"
+          },
+          "errorMappings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ErrorMapping"
+            }
+          },
+          "fallbackBehavior": {
+            "type": "string",
+            "enum": ["FAIL", "RETRY", "USE_BACKUP", "IGNORE"],
+            "description": "Behavior when all retries fail"
+          }
+        }
+      },
+      "RetryPolicy": {
+        "type": "object",
+        "description": "Retry policy configuration",
+        "properties": {
+          "maxAttempts": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Maximum retry attempts"
+          },
+          "initialDelay": {
+            "type": "integer",
+            "description": "Initial delay in milliseconds"
+          },
+          "backoffMultiplier": {
+            "type": "number",
+            "description": "Delay multiplier for subsequent retries"
+          },
+          "retryableErrors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Error codes that should trigger retry"
+          }
+        }
+      },
+      "EDIConfiguration": {
+        "type": "object",
+        "required": ["documentType", "version"],
+        "description": "EDI-specific configuration",
+        "properties": {
+          "documentType": {
+            "type": "string",
+            "enum": ["204", "214", "310", "315", "404", "990"],
+            "description": "EDI document type"
+          },
+          "version": {
+            "type": "string",
+            "description": "EDI version"
+          },
+          "segmentDelimiter": {
+            "type": "string",
+            "description": "Segment delimiter character"
+          },
+          "elementDelimiter": {
+            "type": "string",
+            "description": "Element delimiter character"
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EDIRequirement"
+            }
+          }
+        }
+      },
+      "IntegrationMetrics": {
+        "type": "object",
+        "description": "Integration performance metrics",
+        "properties": {
+          "availability": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Availability percentage"
+          },
+          "responseTime": {
+            "type": "object",
+            "properties": {
+              "average": {
+                "type": "number"
+              },
+              "p95": {
+                "type": "number"
+              },
+              "p99": {
+                "type": "number"
+              }
+            }
+          },
+          "errorRate": {
+            "type": "number",
+            "description": "Error rate percentage"
+          },
+          "throughput": {
+            "type": "object",
+            "properties": {
+              "requests": {
+                "type": "integer"
+              },
+              "period": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

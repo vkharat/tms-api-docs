@@ -1,0 +1,287 @@
+{
+  "components": {
+    "schemas": {
+      "BookingRequest": {
+        "type": "object",
+        "required": ["quoteId", "bookingDetails"],
+        "description": "Request to create a booking from a quote",
+        "properties": {
+          "quoteId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Reference to the accepted quote"
+          },
+          "quoteOptionId": {
+            "type": "string",
+            "description": "Specific quote option being booked"
+          },
+          "bookingDetails": {
+            "$ref": "#/components/schemas/BookingDetails"
+          },
+          "parties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingParty"
+            }
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RequiredDocument"
+            }
+          }
+        }
+      },
+      "BookingDetails": {
+        "type": "object",
+        "required": ["bookingType", "cargo"],
+        "description": "Core booking information",
+        "properties": {
+          "bookingType": {
+            "type": "string",
+            "enum": ["STANDARD", "SPECIAL_HANDLING", "DANGEROUS_GOODS", "PROJECT_CARGO"],
+            "description": "Type of booking"
+          },
+          "cargo": {
+            "$ref": "#/components/schemas/CargoDetails"
+          },
+          "routingPreferences": {
+            "$ref": "#/components/schemas/RoutingPreferences"
+          },
+          "serviceRequirements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceRequirement"
+            }
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingReference"
+            }
+          }
+        }
+      },
+      "BookingParty": {
+        "type": "object",
+        "required": ["role", "partyId"],
+        "description": "Party involved in the booking",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "SHIPPER",
+              "CONSIGNEE",
+              "FORWARDER",
+              "NOTIFY_PARTY",
+              "CUSTOMS_BROKER",
+              "TERMINAL_OPERATOR"
+            ],
+            "description": "Role of the party"
+          },
+          "partyId": {
+            "type": "string",
+            "description": "Unique identifier for the party"
+          },
+          "partyDetails": {
+            "$ref": "#/components/schemas/PartyDetails"
+          },
+          "responsibilities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "DOCUMENTATION",
+                "PAYMENT",
+                "CUSTOMS_CLEARANCE",
+                "CARGO_HANDLING"
+              ]
+            }
+          }
+        }
+      },
+      "ServiceRequirement": {
+        "type": "object",
+        "required": ["serviceType"],
+        "description": "Additional service requirement",
+        "properties": {
+          "serviceType": {
+            "type": "string",
+            "enum": [
+              "CUSTOMS_CLEARANCE",
+              "INSURANCE",
+              "TEMPERATURE_MONITORING",
+              "REAL_TIME_TRACKING",
+              "CONTAINER_MAINTENANCE"
+            ],
+            "description": "Type of service required"
+          },
+          "specifications": {
+            "type": "object",
+            "description": "Service-specific requirements",
+            "additionalProperties": true
+          },
+          "provider": {
+            "type": "string",
+            "description": "Preferred service provider"
+          }
+        }
+      },
+      "BookingReference": {
+        "type": "object",
+        "required": ["type", "value"],
+        "description": "Reference number for the booking",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "BOOKING_NUMBER",
+              "CUSTOMER_REFERENCE",
+              "PO_NUMBER",
+              "LETTER_OF_CREDIT",
+              "CONTRACT_NUMBER"
+            ],
+            "description": "Type of reference"
+          },
+          "value": {
+            "type": "string",
+            "description": "Reference number value"
+          },
+          "issuer": {
+            "type": "string",
+            "description": "Entity that issued the reference"
+          }
+        }
+      },
+      "CapacityAvailability": {
+        "type": "object",
+        "required": ["route", "availabilityStatus"],
+        "description": "Capacity availability information",
+        "properties": {
+          "route": {
+            "$ref": "#/components/schemas/RouteIdentifier"
+          },
+          "availabilityStatus": {
+            "type": "string",
+            "enum": ["AVAILABLE", "LIMITED", "WAITLIST", "FULL"],
+            "description": "Current availability status"
+          },
+          "availableCapacity": {
+            "type": "object",
+            "properties": {
+              "containers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "description": "Available containers by type"
+              },
+              "weight": {
+                "$ref": "#/components/schemas/Weight"
+              },
+              "volume": {
+                "$ref": "#/components/schemas/Volume"
+              }
+            }
+          },
+          "nextAvailability": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Next date when capacity becomes available"
+          },
+          "restrictions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CapacityRestriction"
+            }
+          }
+        }
+      },
+      "CapacityRestriction": {
+        "type": "object",
+        "required": ["type", "description"],
+        "description": "Restriction on capacity",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "WEIGHT_LIMIT",
+              "SIZE_LIMIT",
+              "EQUIPMENT_SHORTAGE",
+              "VESSEL_STABILITY",
+              "PORT_RESTRICTION"
+            ],
+            "description": "Type of restriction"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of the restriction"
+          },
+          "applicableDates": {
+            "$ref": "#/components/schemas/DateRange"
+          },
+          "affectedEquipment": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Equipment types affected"
+          }
+        }
+      },
+      "EquipmentAvailability": {
+        "type": "object",
+        "required": ["location", "equipmentType"],
+        "description": "Equipment availability at a location",
+        "properties": {
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "equipmentType": {
+            "type": "string",
+            "description": "Type of equipment"
+          },
+          "availableQuantity": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of units available"
+          },
+          "availabilityDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When equipment becomes available"
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EquipmentCondition"
+            }
+          }
+        }
+      },
+      "EquipmentCondition": {
+        "type": "object",
+        "description": "Conditions for equipment usage",
+        "properties": {
+          "depositRequired": {
+            "type": "boolean",
+            "description": "Whether a deposit is required"
+          },
+          "depositAmount": {
+            "$ref": "#/components/schemas/MonetaryAmount"
+          },
+          "freeTime": {
+            "$ref": "#/components/schemas/Duration"
+          },
+          "restrictions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Usage restrictions"
+          }
+        }
+      }
+    }
+  }
+}

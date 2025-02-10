@@ -1,0 +1,292 @@
+{
+  "components": {
+    "schemas": {
+      "MasterDataRecord": {
+        "type": "object",
+        "required": ["recordId", "type", "status"],
+        "description": "Base structure for master data records",
+        "properties": {
+          "recordId": {
+            "type": "string",
+            "description": "Unique identifier for the record"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["EQUIPMENT", "LOCATION", "CARRIER", "SERVICE", "ROUTE", "COMMODITY"],
+            "description": "Type of master data"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "INACTIVE", "PENDING", "ARCHIVED"],
+            "description": "Current record status"
+          },
+          "validityPeriod": {
+            "$ref": "#/components/schemas/DateRange"
+          },
+          "version": {
+            "$ref": "#/components/schemas/VersionInfo"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/MasterDataMetadata"
+          },
+          "auditTrail": {
+            "$ref": "#/components/schemas/AuditTrail"
+          }
+        }
+      },
+      "EquipmentMaster": {
+        "type": "object",
+        "required": ["equipmentType", "specifications"],
+        "description": "Equipment master data",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MasterDataRecord"
+          },
+          {
+            "properties": {
+              "equipmentType": {
+                "type": "string",
+                "enum": [
+                  "CONTAINER_20",
+                  "CONTAINER_40",
+                  "CONTAINER_40HC",
+                  "TRAILER",
+                  "CHASSIS",
+                  "VESSEL"
+                ],
+                "description": "Type of equipment"
+              },
+              "specifications": {
+                "$ref": "#/components/schemas/EquipmentSpecifications"
+              },
+              "maintenance": {
+                "$ref": "#/components/schemas/MaintenanceSchedule"
+              },
+              "certifications": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Certification"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "LocationMaster": {
+        "type": "object",
+        "required": ["locationType", "address"],
+        "description": "Location master data",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MasterDataRecord"
+          },
+          {
+            "properties": {
+              "locationType": {
+                "type": "string",
+                "enum": ["PORT", "TERMINAL", "WAREHOUSE", "DEPOT", "YARD"],
+                "description": "Type of location"
+              },
+              "codes": {
+                "$ref": "#/components/schemas/LocationCodes"
+              },
+              "address": {
+                "$ref": "#/components/schemas/Address"
+              },
+              "facilities": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Facility"
+                }
+              },
+              "operatingHours": {
+                "$ref": "#/components/schemas/OperatingSchedule"
+              }
+            }
+          }
+        ]
+      },
+      "ServiceCatalog": {
+        "type": "object",
+        "required": ["serviceType", "serviceDefinition"],
+        "description": "Service offering master data",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MasterDataRecord"
+          },
+          {
+            "properties": {
+              "serviceType": {
+                "type": "string",
+                "enum": ["OCEAN", "AIR", "ROAD", "RAIL", "CUSTOMS", "WAREHOUSE"],
+                "description": "Type of service"
+              },
+              "serviceDefinition": {
+                "$ref": "#/components/schemas/ServiceDefinition"
+              },
+              "coverage": {
+                "$ref": "#/components/schemas/ServiceCoverage"
+              },
+              "requirements": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ServiceRequirement"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "RouteMaster": {
+        "type": "object",
+        "required": ["routeType", "segments"],
+        "description": "Standard route master data",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MasterDataRecord"
+          },
+          {
+            "properties": {
+              "routeType": {
+                "type": "string",
+                "enum": ["DIRECT", "FEEDER", "MAINLINE", "INTERMODAL"],
+                "description": "Type of route"
+              },
+              "segments": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RouteSegment"
+                }
+              },
+              "schedules": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ServiceSchedule"
+                }
+              },
+              "restrictions": {
+                "$ref": "#/components/schemas/RouteRestrictions"
+              }
+            }
+          }
+        ]
+      },
+      "ReferenceData": {
+        "type": "object",
+        "required": ["category", "code", "value"],
+        "description": "Reference data management",
+        "properties": {
+          "category": {
+            "type": "string",
+            "description": "Reference data category"
+          },
+          "code": {
+            "type": "string",
+            "description": "Reference code"
+          },
+          "value": {
+            "type": "string",
+            "description": "Reference value"
+          },
+          "hierarchy": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Hierarchical structure"
+          },
+          "mappings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CodeMapping"
+            }
+          },
+          "validations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationRule"
+            }
+          }
+        }
+      },
+      "VersionInfo": {
+        "type": "object",
+        "required": ["versionNumber", "effectiveDate"],
+        "description": "Version control information",
+        "properties": {
+          "versionNumber": {
+            "type": "string",
+            "description": "Version identifier"
+          },
+          "effectiveDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this version becomes effective"
+          },
+          "expiryDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this version expires"
+          },
+          "changeLog": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChangeRecord"
+            }
+          }
+        }
+      },
+      "MasterDataMetadata": {
+        "type": "object",
+        "description": "Additional master data information",
+        "properties": {
+          "owner": {
+            "type": "string",
+            "description": "Data owner"
+          },
+          "source": {
+            "type": "string",
+            "description": "Data source"
+          },
+          "confidentiality": {
+            "type": "string",
+            "enum": ["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED"],
+            "description": "Data confidentiality level"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Metadata tags"
+          }
+        }
+      },
+      "ValidationRule": {
+        "type": "object",
+        "required": ["ruleType", "expression"],
+        "description": "Data validation rule",
+        "properties": {
+          "ruleType": {
+            "type": "string",
+            "enum": ["FORMAT", "RANGE", "DEPENDENCY", "UNIQUENESS"],
+            "description": "Type of validation rule"
+          },
+          "expression": {
+            "type": "string",
+            "description": "Rule expression"
+          },
+          "errorMessage": {
+            "type": "string",
+            "description": "Message when validation fails"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["WARNING", "ERROR", "CRITICAL"],
+            "description": "Validation severity"
+          }
+        }
+      }
+    }
+  }
+}

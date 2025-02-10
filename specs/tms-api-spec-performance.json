@@ -1,0 +1,244 @@
+{
+  "components": {
+    "schemas": {
+      "PerformanceMetrics": {
+        "type": "object",
+        "required": ["timeframe", "metrics"],
+        "description": "Performance measurement and analytics data",
+        "properties": {
+          "timeframe": {
+            "$ref": "#/components/schemas/DateRange"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricData"
+            }
+          },
+          "aggregationLevel": {
+            "type": "string",
+            "enum": ["HOURLY", "DAILY", "WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY"],
+            "description": "Time granularity of the metrics"
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Analysis dimensions (e.g., carrier, route, customer)"
+          },
+          "comparisons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PerformanceComparison"
+            },
+            "description": "Comparative analysis data"
+          }
+        }
+      },
+      "MetricData": {
+        "type": "object",
+        "required": ["metricId", "name", "values"],
+        "description": "Individual metric measurement data",
+        "properties": {
+          "metricId": {
+            "type": "string",
+            "description": "Unique identifier for the metric"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the metric"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "OPERATIONAL",
+              "FINANCIAL",
+              "SERVICE_QUALITY",
+              "SUSTAINABILITY",
+              "COMPLIANCE"
+            ],
+            "description": "Category of the metric"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricValue"
+            }
+          },
+          "trend": {
+            "$ref": "#/components/schemas/MetricTrend"
+          },
+          "benchmarks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Benchmark"
+            }
+          }
+        }
+      },
+      "MetricValue": {
+        "type": "object",
+        "required": ["timestamp", "value"],
+        "description": "Single metric measurement",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the measurement was taken"
+          },
+          "value": {
+            "type": "number",
+            "description": "Measured value"
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit of measurement"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Confidence level of the measurement"
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricComponent"
+            },
+            "description": "Breakdown of composite metrics"
+          }
+        }
+      },
+      "MetricTrend": {
+        "type": "object",
+        "description": "Trend analysis for a metric",
+        "properties": {
+          "direction": {
+            "type": "string",
+            "enum": ["IMPROVING", "STABLE", "DEGRADING"],
+            "description": "Overall trend direction"
+          },
+          "changeRate": {
+            "type": "number",
+            "description": "Rate of change over the period"
+          },
+          "seasonality": {
+            "type": "boolean",
+            "description": "Whether seasonal patterns are detected"
+          },
+          "forecast": {
+            "$ref": "#/components/schemas/MetricForecast"
+          }
+        }
+      },
+      "MetricForecast": {
+        "type": "object",
+        "description": "Future projections for a metric",
+        "properties": {
+          "predictions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForecastPoint"
+            }
+          },
+          "confidenceInterval": {
+            "type": "object",
+            "properties": {
+              "upper": {
+                "type": "number"
+              },
+              "lower": {
+                "type": "number"
+              },
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            }
+          },
+          "methodology": {
+            "type": "string",
+            "description": "Forecasting methodology used"
+          }
+        }
+      },
+      "Benchmark": {
+        "type": "object",
+        "required": ["type", "value"],
+        "description": "Benchmark for comparison",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["INDUSTRY_AVERAGE", "HISTORICAL", "TARGET", "PEER_GROUP"],
+            "description": "Type of benchmark"
+          },
+          "value": {
+            "type": "number",
+            "description": "Benchmark value"
+          },
+          "source": {
+            "type": "string",
+            "description": "Source of the benchmark data"
+          },
+          "applicabilityRange": {
+            "$ref": "#/components/schemas/DateRange"
+          }
+        }
+      },
+      "PerformanceComparison": {
+        "type": "object",
+        "required": ["baselineMetrics", "comparisonMetrics"],
+        "description": "Comparative analysis between periods or entities",
+        "properties": {
+          "baselineMetrics": {
+            "$ref": "#/components/schemas/MetricData"
+          },
+          "comparisonMetrics": {
+            "$ref": "#/components/schemas/MetricData"
+          },
+          "variance": {
+            "type": "object",
+            "properties": {
+              "absolute": {
+                "type": "number"
+              },
+              "percentage": {
+                "type": "number"
+              }
+            }
+          },
+          "analysisNotes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Notable observations from comparison"
+          }
+        }
+      },
+      "MetricComponent": {
+        "type": "object",
+        "required": ["name", "value"],
+        "description": "Component of a composite metric",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Component name"
+          },
+          "value": {
+            "type": "number",
+            "description": "Component value"
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Relative weight in composite calculation"
+          }
+        }
+      }
+    }
+  }
+}

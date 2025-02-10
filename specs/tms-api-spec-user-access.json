@@ -1,0 +1,284 @@
+{
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "required": ["userId", "status", "userType"],
+        "description": "User account information",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "Unique identifier for the user"
+          },
+          "userType": {
+            "type": "string",
+            "enum": ["INTERNAL", "CUSTOMER", "PARTNER", "SYSTEM"],
+            "description": "Type of user account"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "INACTIVE", "SUSPENDED", "PENDING_ACTIVATION"],
+            "description": "Current account status"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/UserProfile"
+          },
+          "authentication": {
+            "$ref": "#/components/schemas/AuthenticationSettings"
+          },
+          "organizations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrganizationAssignment"
+            },
+            "description": "Organizations the user belongs to"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleAssignment"
+            },
+            "description": "Roles assigned to the user"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/UserPreferences"
+          },
+          "securitySettings": {
+            "$ref": "#/components/schemas/SecuritySettings"
+          }
+        }
+      },
+      "UserProfile": {
+        "type": "object",
+        "required": ["email"],
+        "description": "User profile information",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "description": "User's first name"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "User's last name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Primary email address"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "Contact phone number"
+          },
+          "language": {
+            "type": "string",
+            "pattern": "^[a-z]{2}-[A-Z]{2}$",
+            "description": "Preferred language (e.g., en-US)"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Preferred timezone (IANA format)"
+          }
+        }
+      },
+      "AuthenticationSettings": {
+        "type": "object",
+        "description": "User authentication configuration",
+        "properties": {
+          "authMethod": {
+            "type": "string",
+            "enum": ["PASSWORD", "SSO", "MFA", "API_KEY"],
+            "description": "Primary authentication method"
+          },
+          "mfaEnabled": {
+            "type": "boolean",
+            "description": "Whether MFA is enabled"
+          },
+          "mfaMethods": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["SMS", "EMAIL", "AUTHENTICATOR_APP", "HARDWARE_TOKEN"]
+            }
+          },
+          "passwordPolicy": {
+            "$ref": "#/components/schemas/PasswordPolicy"
+          },
+          "lastLogin": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last successful login timestamp"
+          }
+        }
+      },
+      "Organization": {
+        "type": "object",
+        "required": ["organizationId", "name"],
+        "description": "Organization entity",
+        "properties": {
+          "organizationId": {
+            "type": "string",
+            "description": "Unique identifier for the organization"
+          },
+          "name": {
+            "type": "string",
+            "description": "Organization name"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["ENTERPRISE", "DIVISION", "DEPARTMENT", "PARTNER"],
+            "description": "Type of organization"
+          },
+          "parent": {
+            "type": "string",
+            "description": "Parent organization ID"
+          },
+          "hierarchy": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Full organizational hierarchy path"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/OrganizationSettings"
+          }
+        }
+      },
+      "Role": {
+        "type": "object",
+        "required": ["roleId", "name", "permissions"],
+        "description": "Role definition",
+        "properties": {
+          "roleId": {
+            "type": "string",
+            "description": "Unique identifier for the role"
+          },
+          "name": {
+            "type": "string",
+            "description": "Role name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Role description"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["SYSTEM", "CUSTOM"],
+            "description": "Role type"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Permission"
+            }
+          },
+          "constraints": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccessConstraint"
+            }
+          }
+        }
+      },
+      "Permission": {
+        "type": "object",
+        "required": ["resource", "actions"],
+        "description": "Permission definition",
+        "properties": {
+          "resource": {
+            "type": "string",
+            "description": "Resource identifier"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["CREATE", "READ", "UPDATE", "DELETE", "APPROVE", "EXECUTE"]
+            }
+          },
+          "conditions": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Conditional access rules"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/AccessScope"
+          }
+        }
+      },
+      "AccessConstraint": {
+        "type": "object",
+        "required": ["type", "value"],
+        "description": "Access control constraint",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["TIME_WINDOW", "IP_RANGE", "LOCATION", "DEVICE_TYPE"],
+            "description": "Type of constraint"
+          },
+          "value": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Constraint value"
+          },
+          "action": {
+            "type": "string",
+            "enum": ["ALLOW", "DENY", "REQUIRE_APPROVAL"],
+            "description": "Action when constraint is met"
+          }
+        }
+      },
+      "AccessScope": {
+        "type": "object",
+        "description": "Scope of access permission",
+        "properties": {
+          "organizational": {
+            "type": "string",
+            "enum": ["GLOBAL", "ORGANIZATION", "DIVISION", "DEPARTMENT"],
+            "description": "Organizational scope"
+          },
+          "geographical": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Geographical regions"
+          },
+          "dataClassification": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED"]
+            }
+          }
+        }
+      },
+      "SecuritySettings": {
+        "type": "object",
+        "description": "Security-related settings",
+        "properties": {
+          "ipRestrictions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Allowed IP addresses/ranges"
+          },
+          "sessionTimeout": {
+            "type": "integer",
+            "description": "Session timeout in minutes"
+          },
+          "passwordHistory": {
+            "type": "integer",
+            "description": "Number of previous passwords to remember"
+          },
+          "loginAttempts": {
+            "type": "integer",
+            "description": "Maximum failed login attempts"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,194 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Unified TMS API",
+    "version": "1.0.0",
+    "description": "A modular API for Transportation Management Systems that provides standardized interfaces for quoting, booking, and managing shipments.",
+    "contact": {
+      "name": "TMS API Support",
+      "email": "api-support@example.com",
+      "url": "https://developer.example.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com/v1",
+      "description": "Production server"
+    },
+    {
+      "url": "https://api.staging.example.com/v1",
+      "description": "Staging server"
+    },
+    {
+      "url": "https://api.dev.example.com/v1",
+      "description": "Development server"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Quote Management",
+      "description": "Operations for creating and managing shipping quotes"
+    },
+    {
+      "name": "Location Services",
+      "description": "Operations for location validation and geocoding"
+    },
+    {
+      "name": "Cargo Management",
+      "description": "Operations for cargo specification and validation"
+    },
+    {
+      "name": "Rate Services",
+      "description": "Operations for rate calculation and pricing"
+    },
+    {
+      "name": "Schedule Services",
+      "description": "Operations for transit times and scheduling"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token obtained from the authentication endpoint"
+      }
+    },
+    "parameters": {
+      "correlationId": {
+        "name": "X-Correlation-ID",
+        "in": "header",
+        "required": true,
+        "description": "Unique identifier for tracing the request through the system",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "idempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "description": "Unique key to ensure idempotent operations",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    },
+    "headers": {
+      "RateLimit-Remaining": {
+        "description": "Number of requests remaining in the current time window",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "RateLimit-Reset": {
+        "description": "Time when the rate limit will reset, in UTC epoch seconds",
+        "schema": {
+          "type": "integer"
+        }
+      }
+    },
+    "responses": {
+      "400BadRequest": {
+        "description": "The request was invalid or malformed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "errorCode": "VALIDATION_ERROR",
+              "message": "Request validation failed",
+              "details": [
+                {
+                  "field": "cargoDetails.weight",
+                  "message": "Weight must be greater than 0"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "401Unauthorized": {
+        "description": "Authentication credentials are missing or invalid",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "errorCode": "UNAUTHORIZED",
+              "message": "Invalid or expired token provided"
+            }
+          }
+        }
+      },
+      "429TooManyRequests": {
+        "description": "Too many requests have been made in the given time period",
+        "headers": {
+          "RateLimit-Remaining": {
+            "$ref": "#/components/schemas/RateLimitRemaining"
+          },
+          "RateLimit-Reset": {
+            "$ref": "#/components/schemas/RateLimitReset"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "errorCode": "RATE_LIMIT_EXCEEDED",
+              "message": "API rate limit exceeded",
+              "details": {
+                "resetTime": "2025-02-06T10:00:00Z"
+              }
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": ["errorCode", "message"],
+        "properties": {
+          "errorCode": {
+            "type": "string",
+            "description": "Machine-readable error code",
+            "example": "VALIDATION_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message",
+            "example": "Request validation failed"
+          },
+          "details": {
+            "type": "object",
+            "description": "Additional error context",
+            "additionalProperties": true
+          },
+          "helpUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to error documentation",
+            "example": "https://developer.example.com/errors/VALIDATION_ERROR"
+          }
+        }
+      }
+    }
+  }
+}

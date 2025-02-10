@@ -1,0 +1,302 @@
+{
+  "components": {
+    "schemas": {
+      "QuoteResponse": {
+        "type": "object",
+        "required": ["quoteId", "status", "options"],
+        "description": "Complete response for a quote request",
+        "properties": {
+          "quoteId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for this quote",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["COMPLETED", "PARTIAL", "PROCESSING", "FAILED"],
+            "description": "Current status of the quote request"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuoteOption"
+            },
+            "description": "Available shipping options"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/QuoteSummary"
+          },
+          "validUntil": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp until which the quote is valid"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            },
+            "description": "Any warnings or important notices about the quote"
+          }
+        }
+      },
+      "QuoteOption": {
+        "type": "object",
+        "required": ["optionId", "routing", "pricing", "schedule"],
+        "description": "A single shipping option within a quote",
+        "properties": {
+          "optionId": {
+            "type": "string",
+            "description": "Unique identifier for this option",
+            "example": "OPT-001"
+          },
+          "routing": {
+            "$ref": "#/components/schemas/RouteDetails"
+          },
+          "pricing": {
+            "$ref": "#/components/schemas/PricingDetails"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/ScheduleDetails"
+          },
+          "capacity": {
+            "$ref": "#/components/schemas/CapacityDetails"
+          },
+          "restrictions": {
+            "$ref": "#/components/schemas/ServiceRestrictions"
+          }
+        }
+      },
+      "RouteDetails": {
+        "type": "object",
+        "required": ["segments"],
+        "description": "Detailed routing information",
+        "properties": {
+          "segments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RouteSegment"
+            },
+            "description": "Individual segments of the route"
+          },
+          "totalDistance": {
+            "$ref": "#/components/schemas/Distance"
+          },
+          "co2Emissions": {
+            "$ref": "#/components/schemas/CO2Emissions"
+          }
+        }
+      },
+      "RouteSegment": {
+        "type": "object",
+        "required": ["sequenceNo", "mode", "origin", "destination"],
+        "description": "A single segment of the transportation route",
+        "properties": {
+          "sequenceNo": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Sequence number of this segment",
+            "example": 1
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["SEA", "AIR", "ROAD", "RAIL"],
+            "description": "Mode of transport for this segment"
+          },
+          "carrier": {
+            "type": "string",
+            "description": "Carrier operating this segment",
+            "example": "MAERSK"
+          },
+          "service": {
+            "type": "string",
+            "description": "Service code or name",
+            "example": "TP1"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "vessel": {
+            "$ref": "#/components/schemas/VesselDetails"
+          },
+          "transitTime": {
+            "$ref": "#/components/schemas/Duration"
+          }
+        }
+      },
+      "PricingDetails": {
+        "type": "object",
+        "required": ["totalCharges", "chargeBreakdown"],
+        "description": "Complete pricing information",
+        "properties": {
+          "totalCharges": {
+            "$ref": "#/components/schemas/MonetaryAmount"
+          },
+          "chargeBreakdown": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChargeComponent"
+            },
+            "description": "Detailed breakdown of all charges"
+          },
+          "estimatedCharges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EstimatedCharge"
+            },
+            "description": "Potential additional charges"
+          },
+          "pricingTerms": {
+            "$ref": "#/components/schemas/PricingTerms"
+          }
+        }
+      },
+      "ChargeComponent": {
+        "type": "object",
+        "required": ["chargeType", "amount"],
+        "description": "Individual charge component",
+        "properties": {
+          "chargeType": {
+            "type": "string",
+            "enum": [
+              "BASIC_FREIGHT",
+              "FUEL_SURCHARGE",
+              "SECURITY_FEE",
+              "DOCUMENTATION",
+              "TERMINAL_HANDLING",
+              "CUSTOMS_CLEARANCE",
+              "INSURANCE"
+            ],
+            "description": "Type of charge"
+          },
+          "chargeCode": {
+            "type": "string",
+            "description": "Standardized charge code",
+            "example": "BAF"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/MonetaryAmount"
+          },
+          "basis": {
+            "type": "string",
+            "enum": ["PER_SHIPMENT", "PER_CONTAINER", "PER_KG", "PER_CBM"],
+            "description": "Basis for charge calculation"
+          },
+          "included": {
+            "type": "boolean",
+            "description": "Whether this charge is included in the total",
+            "default": true
+          }
+        }
+      },
+      "ScheduleDetails": {
+        "type": "object",
+        "required": ["milestones"],
+        "description": "Complete schedule information",
+        "properties": {
+          "milestones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Milestone"
+            },
+            "description": "Key events in the shipment timeline"
+          },
+          "transitTime": {
+            "$ref": "#/components/schemas/Duration"
+          },
+          "cutoffDates": {
+            "$ref": "#/components/schemas/CutoffDates"
+          },
+          "freeTime": {
+            "$ref": "#/components/schemas/FreeTime"
+          }
+        }
+      },
+      "Milestone": {
+        "type": "object",
+        "required": ["type", "plannedTime"],
+        "description": "A significant event in the shipment timeline",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "CARGO_READY",
+              "DOCUMENTATION_CUTOFF",
+              "VGM_CUTOFF",
+              "CARGO_CUTOFF",
+              "DEPARTURE",
+              "ARRIVAL",
+              "DELIVERY"
+            ],
+            "description": "Type of milestone"
+          },
+          "plannedTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Planned time for this milestone"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          }
+        }
+      },
+      "CutoffDates": {
+        "type": "object",
+        "description": "Important deadlines for the shipment",
+        "properties": {
+          "documentation": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Deadline for documentation submission"
+          },
+          "vgm": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Deadline for VGM submission"
+          },
+          "cargo": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Deadline for cargo delivery"
+          }
+        }
+      },
+      "QuoteSummary": {
+        "type": "object",
+        "description": "Summary of available quote options",
+        "properties": {
+          "totalOptions": {
+            "type": "integer",
+            "description": "Total number of available options"
+          },
+          "bestPrice": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "$ref": "#/components/schemas/MonetaryAmount"
+              },
+              "optionId": {
+                "type": "string"
+              }
+            }
+          },
+          "fastestTransit": {
+            "type": "object",
+            "properties": {
+              "duration": {
+                "$ref": "#/components/schemas/Duration"
+              },
+              "optionId": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

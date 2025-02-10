@@ -1,0 +1,268 @@
+{
+  "components": {
+    "schemas": {
+      "Notification": {
+        "type": "object",
+        "required": ["notificationId", "type", "priority", "content"],
+        "description": "Notification message structure",
+        "properties": {
+          "notificationId": {
+            "type": "string",
+            "description": "Unique identifier for the notification"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "SHIPMENT_UPDATE",
+              "DOCUMENT_READY",
+              "EXCEPTION_ALERT",
+              "APPROVAL_REQUEST",
+              "SYSTEM_ALERT",
+              "PAYMENT_REMINDER",
+              "COMPLIANCE_ALERT"
+            ],
+            "description": "Type of notification"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+            "description": "Notification priority"
+          },
+          "content": {
+            "$ref": "#/components/schemas/NotificationContent"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/NotificationMetadata"
+          },
+          "distribution": {
+            "$ref": "#/components/schemas/NotificationDistribution"
+          },
+          "tracking": {
+            "$ref": "#/components/schemas/NotificationTracking"
+          }
+        }
+      },
+      "NotificationContent": {
+        "type": "object",
+        "required": ["subject", "body"],
+        "description": "Content of the notification",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "description": "Notification subject or title"
+          },
+          "body": {
+            "type": "string",
+            "description": "Main notification message"
+          },
+          "templateId": {
+            "type": "string",
+            "description": "Reference to message template"
+          },
+          "variables": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Template variables"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationAttachment"
+            }
+          },
+          "formatType": {
+            "type": "string",
+            "enum": ["PLAIN_TEXT", "HTML", "MARKDOWN"],
+            "default": "PLAIN_TEXT",
+            "description": "Content format"
+          }
+        }
+      },
+      "NotificationMetadata": {
+        "type": "object",
+        "description": "Additional notification information",
+        "properties": {
+          "category": {
+            "type": "string",
+            "description": "Business category"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Categorization tags"
+          },
+          "source": {
+            "type": "string",
+            "description": "System or process that generated the notification"
+          },
+          "relatedEntities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityReference"
+            },
+            "description": "Related business entities"
+          },
+          "expiryDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the notification expires"
+          }
+        }
+      },
+      "NotificationDistribution": {
+        "type": "object",
+        "required": ["recipients", "channels"],
+        "description": "Distribution settings for the notification",
+        "properties": {
+          "recipients": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Recipient"
+            }
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Channel"
+            }
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DistributionRule"
+            }
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/DeliverySchedule"
+          }
+        }
+      },
+      "Channel": {
+        "type": "object",
+        "required": ["type", "status"],
+        "description": "Communication channel configuration",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["EMAIL", "SMS", "PUSH", "IN_APP", "WEBHOOK", "API"],
+            "description": "Channel type"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "INACTIVE", "THROTTLED"],
+            "description": "Channel status"
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/ChannelConfig"
+          },
+          "constraints": {
+            "$ref": "#/components/schemas/ChannelConstraints"
+          }
+        }
+      },
+      "Recipient": {
+        "type": "object",
+        "required": ["type", "identifier"],
+        "description": "Notification recipient",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["USER", "ROLE", "GROUP", "ORGANIZATION", "EXTERNAL"],
+            "description": "Recipient type"
+          },
+          "identifier": {
+            "type": "string",
+            "description": "Recipient identifier"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/RecipientPreferences"
+          },
+          "subscriptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationSubscription"
+            }
+          }
+        }
+      },
+      "NotificationSubscription": {
+        "type": "object",
+        "required": ["subscriptionId", "filters"],
+        "description": "Subscription to notification types",
+        "properties": {
+          "subscriptionId": {
+            "type": "string",
+            "description": "Unique subscription identifier"
+          },
+          "filters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionFilter"
+            }
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Preferred channels for this subscription"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/DeliverySchedule"
+          },
+          "digests": {
+            "$ref": "#/components/schemas/DigestSettings"
+          }
+        }
+      },
+      "SubscriptionFilter": {
+        "type": "object",
+        "required": ["field", "operator", "value"],
+        "description": "Filter for notification subscription",
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "Field to filter on"
+          },
+          "operator": {
+            "type": "string",
+            "enum": ["EQUALS", "CONTAINS", "STARTS_WITH", "GREATER_THAN", "LESS_THAN"],
+            "description": "Filter operator"
+          },
+          "value": {
+            "type": "string",
+            "description": "Filter value"
+          }
+        }
+      },
+      "NotificationTracking": {
+        "type": "object",
+        "description": "Notification delivery and interaction tracking",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "SENT", "DELIVERED", "FAILED", "READ"],
+            "description": "Current status"
+          },
+          "deliveryAttempts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeliveryAttempt"
+            }
+          },
+          "interactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationInteraction"
+            }
+          },
+          "analytics": {
+            "$ref": "#/components/schemas/NotificationAnalytics"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,282 @@
+{
+  "components": {
+    "schemas": {
+      "Invoice": {
+        "type": "object",
+        "required": ["invoiceId", "billTo", "charges", "status"],
+        "description": "Invoice for transportation services",
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "description": "Unique invoice identifier"
+          },
+          "invoiceNumber": {
+            "type": "string",
+            "description": "Human-readable invoice number"
+          },
+          "billTo": {
+            "$ref": "#/components/schemas/BillingParty"
+          },
+          "shipments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceShipment"
+            },
+            "description": "Shipments included in this invoice"
+          },
+          "charges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceCharge"
+            }
+          },
+          "totalAmount": {
+            "$ref": "#/components/schemas/MonetaryAmount"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["DRAFT", "ISSUED", "PAID", "PARTIALLY_PAID", "OVERDUE", "DISPUTED", "CANCELLED"],
+            "description": "Current invoice status"
+          },
+          "dates": {
+            "$ref": "#/components/schemas/InvoiceDates"
+          },
+          "paymentTerms": {
+            "$ref": "#/components/schemas/PaymentTerms"
+          },
+          "allocations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CostAllocation"
+            }
+          },
+          "disputes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceDispute"
+            }
+          }
+        }
+      },
+      "BillingParty": {
+        "type": "object",
+        "required": ["partyId", "billingDetails"],
+        "description": "Party responsible for payment",
+        "properties": {
+          "partyId": {
+            "type": "string",
+            "description": "Unique identifier for the party"
+          },
+          "billingDetails": {
+            "$ref": "#/components/schemas/BillingDetails"
+          },
+          "billingPreferences": {
+            "$ref": "#/components/schemas/BillingPreferences"
+          },
+          "creditTerms": {
+            "$ref": "#/components/schemas/CreditTerms"
+          }
+        }
+      },
+      "BillingDetails": {
+        "type": "object",
+        "required": ["legalName", "address"],
+        "description": "Billing information for a party",
+        "properties": {
+          "legalName": {
+            "type": "string",
+            "description": "Legal business name"
+          },
+          "taxId": {
+            "type": "string",
+            "description": "Tax identification number"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "contact": {
+            "$ref": "#/components/schemas/Contact"
+          },
+          "paymentMethods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentMethod"
+            }
+          }
+        }
+      },
+      "InvoiceCharge": {
+        "type": "object",
+        "required": ["chargeType", "amount"],
+        "description": "Individual charge on an invoice",
+        "properties": {
+          "chargeType": {
+            "type": "string",
+            "enum": ["FREIGHT", "FUEL_SURCHARGE", "HANDLING", "CUSTOMS", "INSURANCE", "TAX"],
+            "description": "Type of charge"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of the charge"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/MonetaryAmount"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Quantity for unit-based charges"
+          },
+          "rate": {
+            "type": "number",
+            "description": "Rate per unit"
+          },
+          "taxDetails": {
+            "$ref": "#/components/schemas/TaxDetails"
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChargeReference"
+            }
+          }
+        }
+      },
+      "CostAllocation": {
+        "type": "object",
+        "required": ["allocationKey", "amount"],
+        "description": "Cost allocation details",
+        "properties": {
+          "allocationKey": {
+            "type": "string",
+            "description": "Cost center, project, or department code"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/MonetaryAmount"
+          },
+          "percentage": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Allocation percentage"
+          },
+          "description": {
+            "type": "string",
+            "description": "Allocation description"
+          }
+        }
+      },
+      "PaymentTransaction": {
+        "type": "object",
+        "required": ["transactionId", "amount", "status"],
+        "description": "Payment transaction record",
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "description": "Unique transaction identifier"
+          },
+          "invoiceReferences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceReference"
+            }
+          },
+          "amount": {
+            "$ref": "#/components/schemas/MonetaryAmount"
+          },
+          "paymentMethod": {
+            "$ref": "#/components/schemas/PaymentMethod"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "COMPLETED", "FAILED", "REVERSED"],
+            "description": "Payment status"
+          },
+          "dates": {
+            "$ref": "#/components/schemas/TransactionDates"
+          },
+          "exchangeRate": {
+            "$ref": "#/components/schemas/ExchangeRate"
+          }
+        }
+      },
+      "InvoiceDispute": {
+        "type": "object",
+        "required": ["disputeId", "reason", "amount"],
+        "description": "Dispute on an invoice",
+        "properties": {
+          "disputeId": {
+            "type": "string",
+            "description": "Unique dispute identifier"
+          },
+          "reason": {
+            "type": "string",
+            "enum": ["INCORRECT_AMOUNT", "DUPLICATE_CHARGE", "SERVICE_NOT_RECEIVED", "RATE_MISMATCH", "OTHER"],
+            "description": "Reason for dispute"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/MonetaryAmount"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed dispute description"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["OPEN", "UNDER_REVIEW", "RESOLVED", "REJECTED"],
+            "description": "Current dispute status"
+          },
+          "resolution": {
+            "$ref": "#/components/schemas/DisputeResolution"
+          }
+        }
+      },
+      "CreditTerms": {
+        "type": "object",
+        "description": "Credit terms for a billing party",
+        "properties": {
+          "creditLimit": {
+            "$ref": "#/components/schemas/MonetaryAmount"
+          },
+          "paymentTerms": {
+            "type": "string",
+            "enum": ["NET_30", "NET_45", "NET_60", "PREPAID"],
+            "description": "Standard payment terms"
+          },
+          "creditStatus": {
+            "type": "string",
+            "enum": ["ACTIVE", "ON_HOLD", "SUSPENDED"],
+            "description": "Current credit status"
+          },
+          "reviewDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Next credit review date"
+          }
+        }
+      },
+      "PaymentMethod": {
+        "type": "object",
+        "required": ["type"],
+        "description": "Payment method details",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["BANK_TRANSFER", "CREDIT_CARD", "CHECK", "LETTER_OF_CREDIT"],
+            "description": "Type of payment method"
+          },
+          "bankDetails": {
+            "$ref": "#/components/schemas/BankDetails"
+          },
+          "creditCardDetails": {
+            "$ref": "#/components/schemas/CreditCardDetails"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "EXPIRED", "SUSPENDED"],
+            "description": "Status of payment method"
+          }
+        }
+      }
+    }
+  }
+}

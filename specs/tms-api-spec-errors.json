@@ -1,0 +1,306 @@
+{
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": ["code", "message"],
+        "description": "Standard error response structure",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Machine-readable error code",
+            "example": "INVALID_LOCATION"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message",
+            "example": "The specified location code USXXX is not valid"
+          },
+          "domain": {
+            "type": "string",
+            "enum": ["VALIDATION", "BUSINESS", "TECHNICAL", "SECURITY"],
+            "description": "Domain categorization of the error"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["ERROR", "FATAL"],
+            "description": "Severity level of the error"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ErrorDetail"
+            },
+            "description": "Additional error details"
+          },
+          "correlationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Request correlation ID for tracking"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the error occurred"
+          }
+        }
+      },
+      "ErrorDetail": {
+        "type": "object",
+        "description": "Detailed information about a specific error",
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "Field path where the error occurred",
+            "example": "routingDetails.origin.code"
+          },
+          "value": {
+            "type": "string",
+            "description": "The invalid value",
+            "example": "USXXX"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Specific reason for the error",
+            "example": "UN/LOCODE not found"
+          },
+          "suggestion": {
+            "type": "string",
+            "description": "Suggested correction if available",
+            "example": "Did you mean USLAX?"
+          }
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "description": "Validation-specific error details",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Error"
+          },
+          {
+            "properties": {
+              "validationErrors": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ValidationIssue"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ValidationIssue": {
+        "type": "object",
+        "required": ["type", "field"],
+        "description": "Individual validation issue",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "REQUIRED_FIELD_MISSING",
+              "INVALID_FORMAT",
+              "OUT_OF_RANGE",
+              "INVALID_ENUM_VALUE",
+              "DEPENDENCY_VIOLATION"
+            ],
+            "description": "Type of validation issue"
+          },
+          "field": {
+            "type": "string",
+            "description": "Field path that failed validation"
+          },
+          "message": {
+            "type": "string",
+            "description": "Validation message"
+          },
+          "constraints": {
+            "type": "object",
+            "description": "Validation constraints that were violated",
+            "additionalProperties": true
+          }
+        }
+      },
+      "RequestStatus": {
+        "type": "object",
+        "required": ["requestId", "status", "timestamp"],
+        "description": "Current status of an asynchronous request",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the request"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "RECEIVED",
+              "VALIDATING",
+              "PROCESSING",
+              "COMPLETED",
+              "FAILED",
+              "CANCELLED"
+            ],
+            "description": "Current status of the request"
+          },
+          "progress": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Progress percentage if available"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last status update time"
+          },
+          "estimatedCompletion": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Estimated completion time"
+          },
+          "statusHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatusHistoryEntry"
+            },
+            "description": "History of status changes"
+          },
+          "currentStage": {
+            "$ref": "#/components/schemas/ProcessingStage"
+          }
+        }
+      },
+      "StatusHistoryEntry": {
+        "type": "object",
+        "required": ["status", "timestamp"],
+        "description": "Historical status entry",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status at this point"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this status was recorded"
+          },
+          "details": {
+            "type": "string",
+            "description": "Additional status details"
+          },
+          "actor": {
+            "type": "string",
+            "description": "System or user that caused the status change"
+          }
+        }
+      },
+      "ProcessingStage": {
+        "type": "object",
+        "required": ["stage", "status"],
+        "description": "Current processing stage information",
+        "properties": {
+          "stage": {
+            "type": "string",
+            "enum": [
+              "VALIDATION",
+              "RATE_LOOKUP",
+              "CAPACITY_CHECK",
+              "SCHEDULE_PLANNING",
+              "COMPLIANCE_CHECK",
+              "QUOTE_GENERATION"
+            ],
+            "description": "Current processing stage"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "FAILED"],
+            "description": "Status of the current stage"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this stage started"
+          },
+          "estimatedDuration": {
+            "$ref": "#/components/schemas/Duration"
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Other stages this stage depends on"
+          }
+        }
+      },
+      "HealthStatus": {
+        "type": "object",
+        "required": ["status", "timestamp"],
+        "description": "API health status information",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["HEALTHY", "DEGRADED", "DOWN"],
+            "description": "Overall health status"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Status check time"
+          },
+          "components": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ComponentHealth"
+            },
+            "description": "Status of individual components"
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "requestRate": {
+                "type": "number",
+                "description": "Requests per second"
+              },
+              "errorRate": {
+                "type": "number",
+                "description": "Errors per second"
+              },
+              "averageResponseTime": {
+                "type": "number",
+                "description": "Average response time in milliseconds"
+              }
+            }
+          }
+        }
+      },
+      "ComponentHealth": {
+        "type": "object",
+        "required": ["status"],
+        "description": "Health status of an individual component",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["HEALTHY", "DEGRADED", "DOWN"],
+            "description": "Component health status"
+          },
+          "message": {
+            "type": "string",
+            "description": "Additional status information"
+          },
+          "lastChecked": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last health check time"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Component-specific metrics"
+          }
+        }
+      }
+    }
+  }
+}
