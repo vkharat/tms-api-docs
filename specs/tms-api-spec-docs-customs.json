@@ -84,9 +84,35 @@
           }
         }
       },
+      "DocumentParty": {
+        "type": "object",
+        "required": ["role", "partyDetails"],
+        "description": "Party to be included in documentation",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "SHIPPER",
+              "CONSIGNEE",
+              "NOTIFY_PARTY",
+              "CUSTOMS_BROKER",
+              "FREIGHT_FORWARDER"
+            ],
+            "description": "Role of the party in documentation"
+          },
+          "partyDetails": {
+            "$ref": "#/components/schemas/PartyDetails"
+          },
+          "documentSpecificInfo": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Additional information specific to documents"
+          }
+        }
+      },
       "CustomsDeclaration": {
         "type": "object",
-        "required": ["declarationType", "shipmentDetails", "commodities"],
+        "required": ["declarationType", "shipmentDetails"],
         "description": "Customs declaration information",
         "properties": {
           "declarationType": {
@@ -95,7 +121,7 @@
             "description": "Type of customs declaration"
           },
           "shipmentDetails": {
-            "$ref": "#/components/schemas/CustomsShipmentDetails"
+            "$ref": "#/components/schemas/ShipmentDetails"
           },
           "commodities": {
             "type": "array",
@@ -103,16 +129,13 @@
               "$ref": "#/components/schemas/CustomsCommodity"
             }
           },
-          "parties": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomsParty"
-            }
+          "customsValue": {
+            "$ref": "#/components/schemas/MonetaryAmount"
           },
-          "documents": {
+          "duties": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/SupportingDocument"
+              "$ref": "#/components/schemas/DutyCalculation"
             }
           }
         }
@@ -148,8 +171,8 @@
       },
       "CustomsCommodity": {
         "type": "object",
-        "required": ["description", "hsCode", "quantity", "value"],
-        "description": "Information about goods for customs",
+        "required": ["description", "hsCode", "value"],
+        "description": "Commodity information for customs",
         "properties": {
           "description": {
             "type": "string",
@@ -160,22 +183,10 @@
             "pattern": "^[0-9]{6,10}$",
             "description": "Harmonized System code"
           },
-          "quantity": {
-            "type": "object",
-            "properties": {
-              "value": {
-                "type": "number",
-                "minimum": 0
-              },
-              "unit": {
-                "type": "string"
-              }
-            }
-          },
           "value": {
             "$ref": "#/components/schemas/MonetaryAmount"
           },
-          "originCountry": {
+          "countryOfOrigin": {
             "type": "string",
             "pattern": "^[A-Z]{2}$",
             "description": "ISO country code"
@@ -229,6 +240,31 @@
               "INSURANCE"
             ],
             "description": "Type of adjustment"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/MonetaryAmount"
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["ADD", "DEDUCT"],
+            "description": "Whether to add or deduct"
+          }
+        }
+      },
+      "DutyCalculation": {
+        "type": "object",
+        "required": ["type", "rate", "amount"],
+        "description": "Duty or tax calculation",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["DUTY", "VAT", "EXCISE", "OTHER"],
+            "description": "Type of duty or tax"
+          },
+          "rate": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Rate as percentage"
           },
           "amount": {
             "$ref": "#/components/schemas/MonetaryAmount"

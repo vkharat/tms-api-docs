@@ -209,59 +209,6 @@
           }
         }
       },
-      "VersionInfo": {
-        "type": "object",
-        "required": ["versionNumber", "effectiveDate"],
-        "description": "Version control information",
-        "properties": {
-          "versionNumber": {
-            "type": "string",
-            "description": "Version identifier"
-          },
-          "effectiveDate": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When this version becomes effective"
-          },
-          "expiryDate": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When this version expires"
-          },
-          "changeLog": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ChangeRecord"
-            }
-          }
-        }
-      },
-      "MasterDataMetadata": {
-        "type": "object",
-        "description": "Additional master data information",
-        "properties": {
-          "owner": {
-            "type": "string",
-            "description": "Data owner"
-          },
-          "source": {
-            "type": "string",
-            "description": "Data source"
-          },
-          "confidentiality": {
-            "type": "string",
-            "enum": ["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED"],
-            "description": "Data confidentiality level"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Metadata tags"
-          }
-        }
-      },
       "ValidationRule": {
         "type": "object",
         "required": ["ruleType", "expression"],

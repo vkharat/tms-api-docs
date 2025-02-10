@@ -115,6 +115,27 @@
           }
         }
       },
+      "AuthenticationConfig": {
+        "type": "object",
+        "required": ["type"],
+        "description": "Authentication configuration",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["API_KEY", "OAUTH2", "BASIC", "JWT"],
+            "description": "Authentication type"
+          },
+          "credentials": {
+            "$ref": "#/components/schemas/Credentials"
+          },
+          "oauth2Config": {
+            "$ref": "#/components/schemas/OAuth2Config"
+          },
+          "tokenManagement": {
+            "$ref": "#/components/schemas/TokenManagement"
+          }
+        }
+      },
       "MessageFormat": {
         "type": "object",
         "required": ["format", "version"],

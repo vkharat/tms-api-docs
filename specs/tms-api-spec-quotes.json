@@ -106,152 +106,189 @@
     "schemas": {
       "QuoteRequest": {
         "type": "object",
-        "required": ["cargoDetails", "routingDetails"],
+        "required": ["routingDetails", "cargoDetails"],
+        "description": "Request for a shipping quote",
         "properties": {
-          "requestMetadata": {
-            "$ref": "#/components/schemas/RequestMetadata"
+          "routingDetails": {
+            "$ref": "#/components/schemas/RoutingDetails"
           },
           "cargoDetails": {
             "$ref": "#/components/schemas/CargoDetails"
           },
-          "routingDetails": {
-            "$ref": "#/components/schemas/RoutingDetails"
-          },
-          "preferencesDetails": {
-            "$ref": "#/components/schemas/PreferencesDetails"
-          }
-        }
-      },
-      "RequestMetadata": {
-        "type": "object",
-        "properties": {
-          "clientReferenceId": {
-            "type": "string",
-            "description": "Client's internal reference number",
-            "example": "PO-123456"
-          },
-          "validityPeriod": {
-            "type": "integer",
-            "description": "Number of days the quote should be valid",
-            "minimum": 1,
-            "maximum": 30,
-            "default": 7,
-            "example": 7
-          }
-        }
-      },
-      "CargoDetails": {
-        "type": "object",
-        "required": ["units"],
-        "description": "Details about the cargo to be shipped",
-        "properties": {
-          "units": {
+          "serviceRequirements": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CargoUnit"
+              "$ref": "#/components/schemas/ServiceRequirement"
+            }
+          },
+          "preferredCarriers": {
+            "type": "array",
+            "items": {
+              "type": "string"
             },
-            "minItems": 1,
-            "description": "List of cargo units to be shipped"
+            "description": "Preferred carrier codes"
           },
-          "hazardous": {
-            "type": "boolean",
-            "default": false,
-            "description": "Indicates if any units contain hazardous materials"
-          },
-          "temperatureControlled": {
-            "$ref": "#/components/schemas/TemperatureRequirements"
+          "contractReferences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContractReference"
+            }
           }
         }
       },
-      "CargoUnit": {
+      "ServiceRequirement": {
         "type": "object",
-        "required": ["type", "quantity", "weight"],
+        "required": ["type"],
+        "description": "Specific service requirement",
         "properties": {
           "type": {
             "type": "string",
             "enum": [
-              "CONTAINER_20_STD",
-              "CONTAINER_40_STD",
-              "CONTAINER_40_HC",
-              "PALLET_EUR",
-              "CARTON"
+              "TEMPERATURE_CONTROLLED",
+              "HAZARDOUS",
+              "OVERSIZED",
+              "EXPRESS",
+              "DOOR_TO_DOOR"
             ],
-            "description": "Type of cargo unit"
+            "description": "Type of service required"
           },
-          "quantity": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Number of units of this type",
-            "example": 2
+          "details": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Service-specific details"
           },
-          "weight": {
-            "$ref": "#/components/schemas/Weight"
-          },
-          "dimensions": {
-            "$ref": "#/components/schemas/Dimensions"
-          },
-          "stackable": {
-            "type": "boolean",
-            "default": true,
-            "description": "Indicates if units can be stacked"
+          "priority": {
+            "type": "string",
+            "enum": ["REQUIRED", "PREFERRED", "OPTIONAL"],
+            "description": "Requirement priority"
           }
         }
       },
-      "Weight": {
+      "QuoteOption": {
         "type": "object",
-        "required": ["value", "unit"],
+        "required": ["optionId", "route", "pricing", "transitTime"],
+        "description": "Individual quote option",
         "properties": {
-          "value": {
-            "type": "number",
-            "minimum": 0,
-            "exclusiveMinimum": true,
-            "description": "Weight value",
-            "example": 1000
-          },
-          "unit": {
+          "optionId": {
             "type": "string",
-            "enum": ["KG", "LB"],
-            "description": "Weight unit",
-            "example": "KG"
+            "description": "Unique identifier for this option"
+          },
+          "carrier": {
+            "type": "string",
+            "description": "Carrier providing the service"
+          },
+          "route": {
+            "$ref": "#/components/schemas/RouteDetails"
+          },
+          "pricing": {
+            "$ref": "#/components/schemas/QuotePricing"
+          },
+          "transitTime": {
+            "$ref": "#/components/schemas/TransitTime"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/Schedule"
+          },
+          "restrictions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceRestriction"
+            }
+          },
+          "validityPeriod": {
+            "$ref": "#/components/schemas/DateRange"
           }
         }
       },
-      "Dimensions": {
+      "QuotePricing": {
         "type": "object",
-        "required": ["length", "width", "height", "unit"],
+        "required": ["totalAmount", "currency"],
+        "description": "Pricing details for the quote",
         "properties": {
-          "length": {
+          "totalAmount": {
             "type": "number",
-            "minimum": 0,
-            "exclusiveMinimum": true,
-            "description": "Length of the unit",
-            "example": 120
+            "description": "Total price"
           },
-          "width": {
-            "type": "number",
-            "minimum": 0,
-            "exclusiveMinimum": true,
-            "description": "Width of the unit",
-            "example": 80
-          },
-          "height": {
-            "type": "number",
-            "minimum": 0,
-            "exclusiveMinimum": true,
-            "description": "Height of the unit",
-            "example": 140
-          },
-          "unit": {
+          "currency": {
             "type": "string",
-            "enum": ["CM", "IN"],
-            "description": "Dimension unit",
-            "example": "CM"
+            "pattern": "^[A-Z]{3}$",
+            "description": "Currency code"
+          },
+          "breakdown": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PriceComponent"
+            }
+          },
+          "surcharges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Surcharge"
+            }
+          },
+          "discounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Discount"
+            }
+          }
+        }
+      },
+      "PriceComponent": {
+        "type": "object",
+        "required": ["type", "amount"],
+        "description": "Individual price component",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["FREIGHT", "HANDLING", "DOCUMENTATION", "CUSTOMS", "INSURANCE"],
+            "description": "Type of charge"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/MonetaryAmount"
+          },
+          "basis": {
+            "type": "string",
+            "description": "Calculation basis"
+          },
+          "rate": {
+            "type": "number",
+            "description": "Applied rate"
+          }
+        }
+      },
+      "ServiceRestriction": {
+        "type": "object",
+        "required": ["type", "description"],
+        "description": "Service restriction or limitation",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["WEIGHT", "DIMENSION", "COMMODITY", "DOCUMENTATION", "ROUTING"],
+            "description": "Type of restriction"
+          },
+          "description": {
+            "type": "string",
+            "description": "Restriction details"
+          },
+          "applicability": {
+            "type": "string",
+            "enum": ["ALWAYS", "CONDITIONAL"],
+            "description": "When restriction applies"
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Conditions for restriction"
           }
         }
       },
       "TemperatureRequirements": {
         "type": "object",
         "required": ["min", "max", "unit"],
+        "description": "Temperature control requirements",
         "properties": {
           "min": {
             "type": "number",

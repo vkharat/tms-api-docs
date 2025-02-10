@@ -31,14 +31,23 @@
           "content": {
             "$ref": "#/components/schemas/NotificationContent"
           },
-          "metadata": {
-            "$ref": "#/components/schemas/NotificationMetadata"
+          "recipients": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationRecipient"
+            }
           },
-          "distribution": {
-            "$ref": "#/components/schemas/NotificationDistribution"
+          "channels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationChannel"
+            }
           },
           "tracking": {
             "$ref": "#/components/schemas/NotificationTracking"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/NotificationMetadata"
           }
         }
       },
@@ -55,185 +64,99 @@
             "type": "string",
             "description": "Main notification message"
           },
-          "templateId": {
+          "template": {
             "type": "string",
-            "description": "Reference to message template"
+            "description": "Template identifier if using templated content"
           },
-          "variables": {
+          "templateData": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Template variables"
+            "description": "Data to populate template placeholders"
           },
           "attachments": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/NotificationAttachment"
             }
-          },
-          "formatType": {
-            "type": "string",
-            "enum": ["PLAIN_TEXT", "HTML", "MARKDOWN"],
-            "default": "PLAIN_TEXT",
-            "description": "Content format"
           }
         }
       },
-      "NotificationMetadata": {
+      "NotificationRecipient": {
         "type": "object",
-        "description": "Additional notification information",
+        "required": ["recipientId", "type"],
+        "description": "Recipient of the notification",
         "properties": {
-          "category": {
+          "recipientId": {
             "type": "string",
-            "description": "Business category"
+            "description": "Unique identifier for the recipient"
           },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Categorization tags"
-          },
-          "source": {
-            "type": "string",
-            "description": "System or process that generated the notification"
-          },
-          "relatedEntities": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EntityReference"
-            },
-            "description": "Related business entities"
-          },
-          "expiryDate": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the notification expires"
-          }
-        }
-      },
-      "NotificationDistribution": {
-        "type": "object",
-        "required": ["recipients", "channels"],
-        "description": "Distribution settings for the notification",
-        "properties": {
-          "recipients": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Recipient"
-            }
-          },
-          "channels": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Channel"
-            }
-          },
-          "rules": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DistributionRule"
-            }
-          },
-          "schedule": {
-            "$ref": "#/components/schemas/DeliverySchedule"
-          }
-        }
-      },
-      "Channel": {
-        "type": "object",
-        "required": ["type", "status"],
-        "description": "Communication channel configuration",
-        "properties": {
           "type": {
             "type": "string",
-            "enum": ["EMAIL", "SMS", "PUSH", "IN_APP", "WEBHOOK", "API"],
-            "description": "Channel type"
+            "enum": ["USER", "GROUP", "ROLE", "SYSTEM"],
+            "description": "Type of recipient"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/NotificationPreferences"
+          },
+          "deliveryStatus": {
+            "type": "string",
+            "enum": ["PENDING", "SENT", "DELIVERED", "FAILED"],
+            "description": "Current delivery status"
+          }
+        }
+      },
+      "NotificationChannel": {
+        "type": "object",
+        "required": ["channelType", "status"],
+        "description": "Notification delivery channel",
+        "properties": {
+          "channelType": {
+            "type": "string",
+            "enum": ["EMAIL", "SMS", "PUSH", "IN_APP", "WEBHOOK"],
+            "description": "Type of notification channel"
           },
           "status": {
             "type": "string",
-            "enum": ["ACTIVE", "INACTIVE", "THROTTLED"],
+            "enum": ["ACTIVE", "INACTIVE", "FAILED"],
             "description": "Channel status"
           },
           "configuration": {
-            "$ref": "#/components/schemas/ChannelConfig"
+            "$ref": "#/components/schemas/ChannelConfiguration"
           },
-          "constraints": {
-            "$ref": "#/components/schemas/ChannelConstraints"
-          }
-        }
-      },
-      "Recipient": {
-        "type": "object",
-        "required": ["type", "identifier"],
-        "description": "Notification recipient",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": ["USER", "ROLE", "GROUP", "ORGANIZATION", "EXTERNAL"],
-            "description": "Recipient type"
-          },
-          "identifier": {
-            "type": "string",
-            "description": "Recipient identifier"
-          },
-          "preferences": {
-            "$ref": "#/components/schemas/RecipientPreferences"
-          },
-          "subscriptions": {
+          "deliveryAttempts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/NotificationSubscription"
+              "$ref": "#/components/schemas/DeliveryAttempt"
             }
           }
         }
       },
-      "NotificationSubscription": {
+      "NotificationPreferences": {
         "type": "object",
-        "required": ["subscriptionId", "filters"],
-        "description": "Subscription to notification types",
+        "description": "Recipient notification preferences",
         "properties": {
-          "subscriptionId": {
-            "type": "string",
-            "description": "Unique subscription identifier"
+          "preferredChannels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["EMAIL", "SMS", "PUSH", "IN_APP"]
+            },
+            "description": "Preferred notification channels"
+          },
+          "schedules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeliverySchedule"
+            }
+          },
+          "blackoutPeriods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BlackoutPeriod"
+            }
           },
           "filters": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SubscriptionFilter"
-            }
-          },
-          "channels": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Preferred channels for this subscription"
-          },
-          "schedule": {
-            "$ref": "#/components/schemas/DeliverySchedule"
-          },
-          "digests": {
-            "$ref": "#/components/schemas/DigestSettings"
-          }
-        }
-      },
-      "SubscriptionFilter": {
-        "type": "object",
-        "required": ["field", "operator", "value"],
-        "description": "Filter for notification subscription",
-        "properties": {
-          "field": {
-            "type": "string",
-            "description": "Field to filter on"
-          },
-          "operator": {
-            "type": "string",
-            "enum": ["EQUALS", "CONTAINS", "STARTS_WITH", "GREATER_THAN", "LESS_THAN"],
-            "description": "Filter operator"
-          },
-          "value": {
-            "type": "string",
-            "description": "Filter value"
+            "$ref": "#/components/schemas/NotificationFilters"
           }
         }
       },

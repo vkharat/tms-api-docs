@@ -79,6 +79,7 @@
             "$ref": "#/components/schemas/Error"
           },
           {
+            "type": "object",
             "properties": {
               "validationErrors": {
                 "type": "array",
@@ -120,6 +121,51 @@
             "additionalProperties": true
           }
         }
+      },
+      "BusinessError": {
+        "type": "object",
+        "description": "Business rule violation error",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Error"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "businessRule": {
+                "type": "string",
+                "description": "Identifier of the business rule violated"
+              },
+              "impact": {
+                "type": "string",
+                "enum": ["LOW", "MEDIUM", "HIGH"],
+                "description": "Impact level of the violation"
+              }
+            }
+          }
+        ]
+      },
+      "TechnicalError": {
+        "type": "object",
+        "description": "Technical or system error",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Error"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string",
+                "description": "System component where error occurred"
+              },
+              "stackTrace": {
+                "type": "string",
+                "description": "Stack trace (only in development)"
+              }
+            }
+          }
+        ]
       },
       "RequestStatus": {
         "type": "object",

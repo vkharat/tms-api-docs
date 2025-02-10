@@ -56,6 +56,23 @@
           }
         }
       },
+      "DateRange": {
+        "type": "object",
+        "required": ["startDate", "endDate"],
+        "description": "Date range with start and end dates",
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Start date and time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "End date and time"
+          }
+        }
+      },
       "FreeTimeDetail": {
         "type": "object",
         "description": "Free time details for a specific location",
@@ -80,142 +97,11 @@
           }
         }
       },
-      "ServiceRestrictions": {
+      "ReferenceNumbers": {
         "type": "object",
-        "description": "Restrictions and limitations for the service",
+        "description": "Collection of reference numbers",
         "properties": {
-          "weightLimits": {
-            "$ref": "#/components/schemas/WeightLimits"
-          },
-          "dimensionLimits": {
-            "$ref": "#/components/schemas/DimensionLimits"
-          },
-          "cargoRestrictions": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "NO_DANGEROUS_GOODS",
-                "NO_TEMPERATURE_CONTROLLED",
-                "NO_OVERSIZED",
-                "NO_VALUABLE_CARGO",
-                "NO_LIVESTOCK"
-              ]
-            },
-            "description": "List of cargo restrictions"
-          },
-          "specialRequirements": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Special requirements for this service"
-          }
-        }
-      },
-      "WeightLimits": {
-        "type": "object",
-        "description": "Weight limitations",
-        "properties": {
-          "maxGrossWeight": {
-            "$ref": "#/components/schemas/Weight"
-          },
-          "maxPayloadWeight": {
-            "$ref": "#/components/schemas/Weight"
-          },
-          "minWeight": {
-            "$ref": "#/components/schemas/Weight"
-          }
-        }
-      },
-      "DimensionLimits": {
-        "type": "object",
-        "description": "Dimensional limitations",
-        "properties": {
-          "maxLength": {
-            "$ref": "#/components/schemas/Length"
-          },
-          "maxWidth": {
-            "$ref": "#/components/schemas/Length"
-          },
-          "maxHeight": {
-            "$ref": "#/components/schemas/Length"
-          },
-          "maxVolume": {
-            "$ref": "#/components/schemas/Volume"
-          }
-        }
-      },
-      "Length": {
-        "type": "object",
-        "required": ["value", "unit"],
-        "description": "Length measurement",
-        "properties": {
-          "value": {
-            "type": "number",
-            "minimum": 0,
-            "description": "Length value",
-            "example": 40
-          },
-          "unit": {
-            "type": "string",
-            "enum": ["CM", "IN", "M", "FT"],
-            "description": "Length unit"
-          }
-        }
-      },
-      "Volume": {
-        "type": "object",
-        "required": ["value", "unit"],
-        "description": "Volume measurement",
-        "properties": {
-          "value": {
-            "type": "number",
-            "minimum": 0,
-            "description": "Volume value",
-            "example": 67.5
-          },
-          "unit": {
-            "type": "string",
-            "enum": ["CBM", "CFT", "L"],
-            "description": "Volume unit (cubic meters, cubic feet, liters)"
-          }
-        }
-      },
-      "CapacityDetails": {
-        "type": "object",
-        "description": "Equipment and space availability information",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": ["AVAILABLE", "LIMITED", "WAITLIST", "FULL"],
-            "description": "Current capacity status"
-          },
-          "availableUnits": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Number of units available",
-            "example": 5
-          },
-          "nextAvailability": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Next date when capacity becomes available"
-          },
-          "restrictions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Any capacity-related restrictions"
-          }
-        }
-      },
-      "ReferenceData": {
-        "type": "object",
-        "description": "Reference numbers and identifiers",
-        "properties": {
-          "bookingReference": {
+          "bookingNumber": {
             "type": "string",
             "description": "Booking reference number",
             "example": "BOOK123456"

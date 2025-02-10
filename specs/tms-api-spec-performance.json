@@ -27,193 +27,143 @@
             },
             "description": "Analysis dimensions (e.g., carrier, route, customer)"
           },
+          "filters": {
+            "$ref": "#/components/schemas/MetricFilters"
+          },
           "comparisons": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/PerformanceComparison"
-            },
-            "description": "Comparative analysis data"
+              "$ref": "#/components/schemas/MetricComparison"
+            }
           }
         }
       },
       "MetricData": {
         "type": "object",
-        "required": ["metricId", "name", "values"],
-        "description": "Individual metric measurement data",
+        "required": ["name", "value", "unit"],
+        "description": "Individual metric measurement",
         "properties": {
-          "metricId": {
-            "type": "string",
-            "description": "Unique identifier for the metric"
-          },
           "name": {
             "type": "string",
             "description": "Name of the metric"
           },
-          "category": {
-            "type": "string",
-            "enum": [
-              "OPERATIONAL",
-              "FINANCIAL",
-              "SERVICE_QUALITY",
-              "SUSTAINABILITY",
-              "COMPLIANCE"
-            ],
-            "description": "Category of the metric"
-          },
-          "values": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MetricValue"
-            }
-          },
-          "trend": {
-            "$ref": "#/components/schemas/MetricTrend"
-          },
-          "benchmarks": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Benchmark"
-            }
-          }
-        }
-      },
-      "MetricValue": {
-        "type": "object",
-        "required": ["timestamp", "value"],
-        "description": "Single metric measurement",
-        "properties": {
-          "timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the measurement was taken"
-          },
           "value": {
             "type": "number",
-            "description": "Measured value"
+            "description": "Metric value"
           },
           "unit": {
             "type": "string",
             "description": "Unit of measurement"
           },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the metric was recorded"
+          },
           "confidence": {
             "type": "number",
             "minimum": 0,
             "maximum": 1,
-            "description": "Confidence level of the measurement"
+            "description": "Confidence level in the metric (0-1)"
           },
           "components": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/MetricComponent"
+            }
+          }
+        }
+      },
+      "MetricFilters": {
+        "type": "object",
+        "description": "Filtering criteria for metrics",
+        "properties": {
+          "timeRange": {
+            "$ref": "#/components/schemas/DateRange"
+          },
+          "dimensions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             },
-            "description": "Breakdown of composite metrics"
-          }
-        }
-      },
-      "MetricTrend": {
-        "type": "object",
-        "description": "Trend analysis for a metric",
-        "properties": {
-          "direction": {
-            "type": "string",
-            "enum": ["IMPROVING", "STABLE", "DEGRADING"],
-            "description": "Overall trend direction"
+            "description": "Dimension-based filters"
           },
-          "changeRate": {
-            "type": "number",
-            "description": "Rate of change over the period"
-          },
-          "seasonality": {
-            "type": "boolean",
-            "description": "Whether seasonal patterns are detected"
-          },
-          "forecast": {
-            "$ref": "#/components/schemas/MetricForecast"
-          }
-        }
-      },
-      "MetricForecast": {
-        "type": "object",
-        "description": "Future projections for a metric",
-        "properties": {
-          "predictions": {
+          "thresholds": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ForecastPoint"
+              "$ref": "#/components/schemas/MetricThreshold"
             }
           },
-          "confidenceInterval": {
-            "type": "object",
-            "properties": {
-              "upper": {
-                "type": "number"
-              },
-              "lower": {
-                "type": "number"
-              },
-              "confidence": {
-                "type": "number",
-                "minimum": 0,
-                "maximum": 1
-              }
-            }
-          },
-          "methodology": {
-            "type": "string",
-            "description": "Forecasting methodology used"
-          }
-        }
-      },
-      "Benchmark": {
-        "type": "object",
-        "required": ["type", "value"],
-        "description": "Benchmark for comparison",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": ["INDUSTRY_AVERAGE", "HISTORICAL", "TARGET", "PEER_GROUP"],
-            "description": "Type of benchmark"
-          },
-          "value": {
-            "type": "number",
-            "description": "Benchmark value"
-          },
-          "source": {
-            "type": "string",
-            "description": "Source of the benchmark data"
-          },
-          "applicabilityRange": {
-            "$ref": "#/components/schemas/DateRange"
-          }
-        }
-      },
-      "PerformanceComparison": {
-        "type": "object",
-        "required": ["baselineMetrics", "comparisonMetrics"],
-        "description": "Comparative analysis between periods or entities",
-        "properties": {
-          "baselineMetrics": {
-            "$ref": "#/components/schemas/MetricData"
-          },
-          "comparisonMetrics": {
-            "$ref": "#/components/schemas/MetricData"
-          },
-          "variance": {
-            "type": "object",
-            "properties": {
-              "absolute": {
-                "type": "number"
-              },
-              "percentage": {
-                "type": "number"
-              }
-            }
-          },
-          "analysisNotes": {
+          "exclusions": {
             "type": "array",
             "items": {
               "type": "string"
             },
+            "description": "Metrics to exclude"
+          }
+        }
+      },
+      "MetricThreshold": {
+        "type": "object",
+        "required": ["metric", "operator", "value"],
+        "description": "Threshold definition for metric filtering",
+        "properties": {
+          "metric": {
+            "type": "string",
+            "description": "Metric name"
+          },
+          "operator": {
+            "type": "string",
+            "enum": ["GT", "GTE", "LT", "LTE", "EQ", "NEQ"],
+            "description": "Comparison operator"
+          },
+          "value": {
+            "type": "number",
+            "description": "Threshold value"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["INFO", "WARNING", "CRITICAL"],
+            "description": "Severity when threshold is breached"
+          }
+        }
+      },
+      "MetricComparison": {
+        "type": "object",
+        "required": ["baseMetric", "comparisonMetric", "type"],
+        "description": "Comparison between metrics",
+        "properties": {
+          "baseMetric": {
+            "type": "string",
+            "description": "Base metric for comparison"
+          },
+          "comparisonMetric": {
+            "type": "string",
+            "description": "Metric being compared against"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["PERIOD", "TARGET", "BENCHMARK"],
+            "description": "Type of comparison"
+          },
+          "difference": {
+            "type": "number",
+            "description": "Absolute difference"
+          },
+          "percentageChange": {
+            "type": "number",
+            "description": "Percentage change"
+          },
+          "trend": {
+            "type": "string",
+            "enum": ["IMPROVING", "STABLE", "DEGRADING"],
+            "description": "Trend direction"
+          },
+          "analysis": {
+            "type": "string",
             "description": "Notable observations from comparison"
           }
         }

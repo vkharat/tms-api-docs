@@ -69,54 +69,49 @@
             "items": {
               "$ref": "#/components/schemas/ContractObligation"
             }
-          },
-          "authorizedRepresentatives": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Contact"
-            }
           }
         }
       },
       "ContractTerms": {
         "type": "object",
-        "required": ["commercialTerms"],
+        "required": ["effectiveDate", "expirationDate"],
         "description": "Terms and conditions of the contract",
         "properties": {
-          "commercialTerms": {
-            "$ref": "#/components/schemas/CommercialTerms"
+          "effectiveDate": {
+            "type": "string",
+            "format": "date",
+            "description": "When the contract becomes effective"
           },
-          "operationalTerms": {
-            "$ref": "#/components/schemas/OperationalTerms"
+          "expirationDate": {
+            "type": "string",
+            "format": "date",
+            "description": "When the contract expires"
+          },
+          "renewalTerms": {
+            "$ref": "#/components/schemas/RenewalTerms"
           },
           "paymentTerms": {
             "$ref": "#/components/schemas/PaymentTerms"
           },
-          "performanceTerms": {
-            "$ref": "#/components/schemas/PerformanceTerms"
-          },
-          "terminationTerms": {
-            "$ref": "#/components/schemas/TerminationTerms"
+          "specialConditions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Special conditions or notes"
           }
         }
       },
       "ServiceLevelAgreement": {
         "type": "object",
-        "required": ["metrics", "reportingPeriod"],
-        "description": "Service level commitments and metrics",
+        "required": ["metrics", "penalties"],
+        "description": "Service level agreement details",
         "properties": {
           "metrics": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/SLAMetric"
-            },
-            "description": "Performance metrics being tracked"
-          },
-          "reportingPeriod": {
-            "$ref": "#/components/schemas/ReportingPeriod"
-          },
-          "escalationProcess": {
-            "$ref": "#/components/schemas/EscalationProcess"
+            }
           },
           "penalties": {
             "type": "array",
@@ -124,179 +119,69 @@
               "$ref": "#/components/schemas/SLAPenalty"
             }
           },
-          "reviewProcess": {
-            "$ref": "#/components/schemas/ReviewProcess"
-          }
-        }
-      },
-      "SLAMetric": {
-        "type": "object",
-        "required": ["metricId", "name", "target"],
-        "description": "Individual performance metric",
-        "properties": {
-          "metricId": {
-            "type": "string",
-            "description": "Unique identifier for the metric"
-          },
-          "name": {
-            "type": "string",
-            "description": "Name of the metric"
-          },
-          "category": {
-            "type": "string",
-            "enum": ["DELIVERY_TIME", "ACCURACY", "QUALITY", "RESPONSIVENESS"],
-            "description": "Category of metric"
-          },
-          "description": {
-            "type": "string",
-            "description": "Detailed description of the metric"
-          },
-          "target": {
-            "$ref": "#/components/schemas/MetricTarget"
-          },
-          "measurement": {
-            "$ref": "#/components/schemas/MetricMeasurement"
-          },
-          "exceptions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MetricException"
-            }
-          }
-        }
-      },
-      "MetricTarget": {
-        "type": "object",
-        "required": ["value", "unit"],
-        "description": "Target value for a metric",
-        "properties": {
-          "value": {
-            "type": "number",
-            "description": "Target value"
-          },
-          "unit": {
-            "type": "string",
-            "description": "Unit of measurement"
-          },
-          "threshold": {
-            "type": "object",
-            "properties": {
-              "warning": {
-                "type": "number",
-                "description": "Warning threshold"
-              },
-              "critical": {
-                "type": "number",
-                "description": "Critical threshold"
-              }
-            }
-          },
-          "direction": {
-            "type": "string",
-            "enum": ["MINIMUM", "MAXIMUM", "TARGET"],
-            "description": "How to interpret the target value"
-          }
-        }
-      },
-      "MetricMeasurement": {
-        "type": "object",
-        "required": ["method", "frequency"],
-        "description": "How the metric is measured",
-        "properties": {
-          "method": {
-            "type": "string",
-            "description": "Measurement method"
-          },
-          "frequency": {
-            "type": "string",
-            "enum": ["REAL_TIME", "HOURLY", "DAILY", "WEEKLY", "MONTHLY"],
-            "description": "Measurement frequency"
-          },
-          "dataSource": {
-            "type": "string",
-            "description": "Source of measurement data"
-          },
-          "calculationRules": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Rules for calculating the metric"
-          }
-        }
-      },
-      "EscalationProcess": {
-        "type": "object",
-        "required": ["levels"],
-        "description": "Process for handling SLA violations",
-        "properties": {
-          "levels": {
+          "escalationProcess": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/EscalationLevel"
             }
           },
-          "notificationRules": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/NotificationRule"
-            }
-          },
-          "resolutionTimeframes": {
-            "$ref": "#/components/schemas/ResolutionTimeframes"
+          "reportingFrequency": {
+            "type": "string",
+            "enum": ["DAILY", "WEEKLY", "MONTHLY", "QUARTERLY"],
+            "description": "Frequency of SLA reporting"
           }
         }
       },
-      "EscalationLevel": {
+      "ContractAmendment": {
         "type": "object",
-        "required": ["level", "criteria", "actions"],
-        "description": "Single level in escalation process",
+        "required": ["amendmentId", "effectiveDate", "changes"],
+        "description": "Amendment to the original contract",
         "properties": {
-          "level": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Escalation level number"
+          "amendmentId": {
+            "type": "string",
+            "description": "Unique identifier for the amendment"
           },
-          "criteria": {
+          "effectiveDate": {
+            "type": "string",
+            "format": "date",
+            "description": "When the amendment takes effect"
+          },
+          "changes": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EscalationCriteria"
+              "$ref": "#/components/schemas/ContractChange"
             }
           },
-          "actions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EscalationAction"
-            }
-          },
-          "responsibleParties": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Contact"
-            }
+          "approvalStatus": {
+            "type": "string",
+            "enum": ["PENDING", "APPROVED", "REJECTED"],
+            "description": "Status of amendment approval"
           }
         }
       },
-      "SLAPenalty": {
+      "SLAMetric": {
         "type": "object",
-        "required": ["trigger", "penalty"],
-        "description": "Penalty for SLA violation",
+        "required": ["name", "target", "unit"],
+        "description": "Service level metric definition",
         "properties": {
-          "trigger": {
-            "$ref": "#/components/schemas/PenaltyTrigger"
+          "name": {
+            "type": "string",
+            "description": "Name of the metric"
           },
-          "penalty": {
-            "$ref": "#/components/schemas/PenaltyDetail"
+          "target": {
+            "type": "number",
+            "description": "Target value for the metric"
           },
-          "maxPenalty": {
-            "$ref": "#/components/schemas/MonetaryAmount"
+          "unit": {
+            "type": "string",
+            "description": "Unit of measurement"
           },
-          "applicationRules": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Rules for applying penalties"
+          "measurementPeriod": {
+            "$ref": "#/components/schemas/Duration"
+          },
+          "calculationMethod": {
+            "type": "string",
+            "description": "How the metric is calculated"
           }
         }
       }

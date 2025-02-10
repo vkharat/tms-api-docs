@@ -86,44 +86,35 @@
           "partyDetails": {
             "$ref": "#/components/schemas/PartyDetails"
           },
-          "responsibilities": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "DOCUMENTATION",
-                "PAYMENT",
-                "CUSTOMS_CLEARANCE",
-                "CARGO_HANDLING"
-              ]
-            }
+          "contactInfo": {
+            "$ref": "#/components/schemas/Contact"
           }
         }
       },
       "ServiceRequirement": {
         "type": "object",
-        "required": ["serviceType"],
-        "description": "Additional service requirement",
+        "required": ["type"],
+        "description": "Special service requirement for the booking",
         "properties": {
-          "serviceType": {
+          "type": {
             "type": "string",
             "enum": [
-              "CUSTOMS_CLEARANCE",
-              "INSURANCE",
-              "TEMPERATURE_MONITORING",
-              "REAL_TIME_TRACKING",
-              "CONTAINER_MAINTENANCE"
+              "TEMPERATURE_CONTROLLED",
+              "HAZARDOUS_CARGO",
+              "OVERSIZED",
+              "HEAVY_LIFT",
+              "SPECIAL_HANDLING"
             ],
-            "description": "Type of service required"
+            "description": "Type of service requirement"
+          },
+          "details": {
+            "type": "string",
+            "description": "Additional details about the requirement"
           },
           "specifications": {
             "type": "object",
-            "description": "Service-specific requirements",
-            "additionalProperties": true
-          },
-          "provider": {
-            "type": "string",
-            "description": "Preferred service provider"
+            "additionalProperties": true,
+            "description": "Requirement-specific specifications"
           }
         }
       },
@@ -135,11 +126,10 @@
           "type": {
             "type": "string",
             "enum": [
-              "BOOKING_NUMBER",
               "CUSTOMER_REFERENCE",
-              "PO_NUMBER",
-              "LETTER_OF_CREDIT",
-              "CONTRACT_NUMBER"
+              "PURCHASE_ORDER",
+              "SALES_ORDER",
+              "SHIPPING_ORDER"
             ],
             "description": "Type of reference"
           },
@@ -150,6 +140,33 @@
           "issuer": {
             "type": "string",
             "description": "Entity that issued the reference"
+          }
+        }
+      },
+      "RequiredDocument": {
+        "type": "object",
+        "required": ["documentType", "status"],
+        "description": "Document required for the booking",
+        "properties": {
+          "documentType": {
+            "type": "string",
+            "enum": [
+              "COMMERCIAL_INVOICE",
+              "PACKING_LIST",
+              "CERTIFICATE_OF_ORIGIN",
+              "DANGEROUS_GOODS_DECLARATION"
+            ],
+            "description": "Type of document"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["REQUIRED", "RECEIVED", "PENDING", "VERIFIED"],
+            "description": "Current status of the document"
+          },
+          "deadline": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the document must be submitted by"
           }
         }
       },

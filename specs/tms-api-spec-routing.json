@@ -14,31 +14,214 @@
             "$ref": "#/components/schemas/Location",
             "description": "Destination location of the shipment"
           },
-          "viaPoints": {
+          "via": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Location"
             },
-            "description": "Optional intermediate points for routing",
-            "maxItems": 5
+            "description": "Intermediate points in the route"
+          },
+          "routeType": {
+            "type": "string",
+            "enum": ["DIRECT", "MULTI_MODAL", "TRANSSHIPMENT", "FEEDER"],
+            "description": "Type of routing"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/RoutingPreferences"
+          },
+          "restrictions": {
+            "$ref": "#/components/schemas/RoutingRestrictions"
+          }
+        }
+      },
+      "RoutingPreferences": {
+        "type": "object",
+        "description": "Preferences for route selection",
+        "properties": {
+          "priorityFactors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PriorityFactor"
+            },
+            "description": "Factors affecting route selection"
+          },
+          "preferredCarriers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Preferred carrier codes"
+          },
+          "maxTransshipments": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Maximum number of transshipments"
+          },
+          "transitTimeLimit": {
+            "$ref": "#/components/schemas/Duration"
+          }
+        }
+      },
+      "PriorityFactor": {
+        "type": "object",
+        "required": ["factor", "priority"],
+        "description": "Priority factor for route selection",
+        "properties": {
+          "factor": {
+            "type": "string",
+            "enum": ["COST", "TIME", "RELIABILITY", "CO2_EMISSIONS"],
+            "description": "Route selection factor"
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Priority level (1-10)"
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Weight in calculation (0-1)"
+          }
+        }
+      },
+      "RoutingRestrictions": {
+        "type": "object",
+        "description": "Restrictions on route selection",
+        "properties": {
+          "excludedPorts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Ports to avoid"
+          },
+          "excludedCountries": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            },
+            "description": "Countries to avoid (ISO codes)"
           },
           "transportModes": {
             "type": "array",
             "items": {
               "type": "string",
-              "enum": ["SEA", "AIR", "ROAD", "RAIL", "MULTIMODAL"],
-              "description": "Acceptable modes of transport"
+              "enum": ["SEA", "AIR", "RAIL", "ROAD"]
             },
-            "description": "Preferred transport modes. If empty, all modes will be considered"
+            "description": "Allowed transport modes"
           },
-          "schedulingConstraints": {
-            "$ref": "#/components/schemas/SchedulingConstraints"
-          },
-          "routingStrategy": {
+          "vesselRestrictions": {
+            "$ref": "#/components/schemas/VesselRestrictions"
+          }
+        }
+      },
+      "ServiceSchedule": {
+        "type": "object",
+        "required": ["serviceId", "frequency"],
+        "description": "Service schedule information",
+        "properties": {
+          "serviceId": {
             "type": "string",
-            "enum": ["FASTEST", "CHEAPEST", "BALANCED", "ECO_FRIENDLY"],
-            "default": "BALANCED",
-            "description": "Preferred strategy for route selection"
+            "description": "Service identifier"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": ["DAILY", "WEEKLY", "BIWEEKLY", "MONTHLY"],
+            "description": "Service frequency"
+          },
+          "departures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledDeparture"
+            }
+          },
+          "transitTime": {
+            "$ref": "#/components/schemas/Duration"
+          },
+          "reliability": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Service reliability percentage"
+          }
+        }
+      },
+      "ScheduledDeparture": {
+        "type": "object",
+        "required": ["departureTime", "vesselName"],
+        "description": "Scheduled departure information",
+        "properties": {
+          "departureTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Scheduled departure time"
+          },
+          "vesselName": {
+            "type": "string",
+            "description": "Name of the vessel"
+          },
+          "voyage": {
+            "type": "string",
+            "description": "Voyage number"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["SCHEDULED", "CONFIRMED", "DELAYED", "CANCELLED"],
+            "description": "Departure status"
+          },
+          "operatingHours": {
+            "$ref": "#/components/schemas/OperatingHours"
+          }
+        }
+      },
+      "OperatingHours": {
+        "type": "object",
+        "description": "Facility operating hours",
+        "properties": {
+          "regularHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeWindow"
+            },
+            "description": "Regular operating hours"
+          },
+          "exceptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OperatingException"
+            }
+          }
+        }
+      },
+      "OperatingException": {
+        "type": "object",
+        "required": ["date", "type"],
+        "description": "Exception to regular operating hours",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "Exception date"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["HOLIDAY", "MAINTENANCE", "SPECIAL_HOURS"],
+            "description": "Type of exception"
+          },
+          "hours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeWindow"
+            },
+            "description": "Modified operating hours if applicable"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Reason for the exception",
+            "example": "Christmas Day"
           }
         }
       },
