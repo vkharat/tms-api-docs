@@ -13,27 +13,160 @@
       #redoc-container {
         background-color: white;
       }
-      .menu-content {
-        border-right: 1px solid #e0e0e0;
-      }
-      .api-info {
-        margin: 20px;
-        padding: 20px;
-        border-bottom: 1px solid #e0e0e0;
-      }
     </style>
   </head>
   <body>
-    <div class="api-info">
-      <h1>TMS API Documentation</h1>
-      <p>Welcome to the Transportation Management System API documentation.</p>
-    </div>
     <div id="redoc-container"></div>
     <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"> </script>
     <script>
-      // Initialize Redoc with your base spec file
+      const spec = {
+        "openapi": "3.0.3",
+        "info": {
+          "title": "TMS API Documentation",
+          "version": "1.0.0",
+          "description": "Transportation Management System API documentation",
+          "contact": {
+            "name": "API Support",
+            "email": "api-support@example.com"
+          }
+        },
+        "components": {
+          "schemas": {
+            "Invoice": {
+              "type": "object",
+              "required": ["invoiceId", "billTo", "charges", "status"],
+              "description": "Invoice for transportation services",
+              "properties": {
+                "invoiceId": {
+                  "type": "string",
+                  "description": "Unique invoice identifier"
+                },
+                "invoiceNumber": {
+                  "type": "string",
+                  "description": "Human-readable invoice number"
+                },
+                "billTo": {
+                  "$ref": "#/components/schemas/BillingParty"
+                },
+                "shipments": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InvoiceShipment"
+                  },
+                  "description": "Shipments included in this invoice"
+                },
+                "charges": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InvoiceCharge"
+                  }
+                },
+                "totalAmount": {
+                  "$ref": "#/components/schemas/MonetaryAmount"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["DRAFT", "ISSUED", "PAID", "PARTIALLY_PAID", "OVERDUE", "DISPUTED", "CANCELLED"],
+                  "description": "Current invoice status"
+                }
+              }
+            },
+            "BillingParty": {
+              "type": "object",
+              "required": ["partyId", "billingDetails"],
+              "description": "Party responsible for payment",
+              "properties": {
+                "partyId": {
+                  "type": "string",
+                  "description": "Unique identifier for the party"
+                },
+                "billingDetails": {
+                  "$ref": "#/components/schemas/BillingDetails"
+                },
+                "billingPreferences": {
+                  "$ref": "#/components/schemas/BillingPreferences"
+                },
+                "creditTerms": {
+                  "$ref": "#/components/schemas/CreditTerms"
+                }
+              }
+            },
+            "InvoiceCharge": {
+              "type": "object",
+              "required": ["chargeType", "amount"],
+              "description": "Individual charge on an invoice",
+              "properties": {
+                "chargeType": {
+                  "type": "string",
+                  "enum": ["FREIGHT", "FUEL_SURCHARGE", "HANDLING", "CUSTOMS", "INSURANCE", "TAX"],
+                  "description": "Type of charge"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Detailed description of the charge"
+                },
+                "amount": {
+                  "$ref": "#/components/schemas/MonetaryAmount"
+                }
+              }
+            }
+          }
+        },
+        "paths": {
+          "/invoices": {
+            "get": {
+              "summary": "List all invoices",
+              "operationId": "listInvoices",
+              "tags": ["Billing"],
+              "responses": {
+                "200": {
+                  "description": "A list of invoices",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/Invoice"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "post": {
+              "summary": "Create a new invoice",
+              "operationId": "createInvoice",
+              "tags": ["Billing"],
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/Invoice"
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "201": {
+                  "description": "Invoice created successfully",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/Invoice"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      };
+
       Redoc.init(
-        'specs/tms-api-spec-base.json',
+        spec,
         {
           scrollYOffset: 50,
           hideDownloadButton: false,
