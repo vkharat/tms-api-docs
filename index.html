@@ -38,25 +38,30 @@
               "properties": {
                 "id": {
                   "type": "string",
-                  "description": "Unique identifier"
+                  "description": "Unique identifier",
+                  "example": "123e4567-e89b-12d3-a456-426614174000"
                 },
                 "type": {
                   "type": "string",
-                  "description": "Entity type"
+                  "description": "Entity type",
+                  "example": "INVOICE"
                 },
                 "status": {
                   "type": "string",
-                  "description": "Current status"
+                  "description": "Current status",
+                  "example": "ACTIVE"
                 },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time",
-                  "description": "Creation timestamp"
+                  "description": "Creation timestamp",
+                  "example": "2024-01-01T12:00:00Z"
                 },
                 "updatedAt": {
                   "type": "string",
                   "format": "date-time",
-                  "description": "Last update timestamp"
+                  "description": "Last update timestamp",
+                  "example": "2024-01-01T12:00:00Z"
                 }
               }
             },
@@ -68,12 +73,14 @@
                 "value": {
                   "type": "number",
                   "format": "double",
-                  "description": "Monetary value"
+                  "description": "Monetary value",
+                  "example": 1250.50
                 },
                 "currency": {
                   "type": "string",
                   "pattern": "^[A-Z]{3}$",
-                  "description": "ISO 4217 currency code"
+                  "description": "ISO 4217 currency code",
+                  "example": "USD"
                 }
               }
             },
@@ -96,15 +103,18 @@
                     "dueDate": {
                       "type": "string",
                       "format": "date",
-                      "description": "Payment due date"
+                      "description": "Payment due date",
+                      "example": "2024-02-01"
                     },
                     "paymentTerms": {
                       "type": "string",
-                      "description": "Payment terms description"
+                      "description": "Payment terms description",
+                      "example": "Net 30"
                     },
                     "invoiceNumber": {
                       "type": "string",
-                      "description": "Invoice reference number"
+                      "description": "Invoice reference number",
+                      "example": "INV-2024-001"
                     },
                     "lineItems": {
                       "type": "array",
@@ -129,7 +139,8 @@
               "properties": {
                 "description": {
                   "type": "string",
-                  "description": "Line item description"
+                  "description": "Line item description",
+                  "example": "Ocean Freight"
                 },
                 "amount": {
                   "$ref": "#/components/schemas/MonetaryAmount"
@@ -137,14 +148,16 @@
                 "quantity": {
                   "type": "number",
                   "minimum": 0,
-                  "description": "Quantity of items"
+                  "description": "Quantity of items",
+                  "example": 1
                 },
                 "unitPrice": {
                   "$ref": "#/components/schemas/MonetaryAmount"
                 },
                 "serviceCode": {
                   "type": "string",
-                  "description": "Service code reference"
+                  "description": "Service code reference",
+                  "example": "OCF-STD"
                 }
               }
             },
@@ -156,20 +169,23 @@
                 "type": {
                   "type": "string",
                   "enum": ["VAT", "GST", "SALES_TAX", "OTHER"],
-                  "description": "Type of tax"
+                  "description": "Type of tax",
+                  "example": "VAT"
                 },
                 "rate": {
                   "type": "number",
                   "minimum": 0,
                   "maximum": 100,
-                  "description": "Tax rate percentage"
+                  "description": "Tax rate percentage",
+                  "example": 20
                 },
                 "amount": {
                   "$ref": "#/components/schemas/MonetaryAmount"
                 },
                 "taxNumber": {
                   "type": "string",
-                  "description": "Tax registration number"
+                  "description": "Tax registration number",
+                  "example": "GB123456789"
                 }
               }
             },
@@ -180,16 +196,19 @@
               "properties": {
                 "partyId": {
                   "type": "string",
-                  "description": "Unique identifier for the party"
+                  "description": "Unique identifier for the party",
+                  "example": "PARTY-001"
                 },
                 "name": {
                   "type": "string",
-                  "description": "Party name"
+                  "description": "Party name",
+                  "example": "Acme Corporation"
                 },
                 "type": {
                   "type": "string",
                   "enum": ["SHIPPER", "CONSIGNEE", "FREIGHT_FORWARDER", "CUSTOMS_BROKER"],
-                  "description": "Type of party"
+                  "description": "Type of party",
+                  "example": "SHIPPER"
                 },
                 "address": {
                   "$ref": "#/components/schemas/Address"
@@ -206,24 +225,29 @@
               "properties": {
                 "street": {
                   "type": "string",
-                  "description": "Street address"
+                  "description": "Street address",
+                  "example": "123 Main St"
                 },
                 "city": {
                   "type": "string",
-                  "description": "City name"
+                  "description": "City name",
+                  "example": "Boston"
                 },
                 "state": {
                   "type": "string",
-                  "description": "State or province"
+                  "description": "State or province",
+                  "example": "MA"
                 },
                 "postalCode": {
                   "type": "string",
-                  "description": "Postal or ZIP code"
+                  "description": "Postal or ZIP code",
+                  "example": "02110"
                 },
                 "country": {
                   "type": "string",
                   "pattern": "^[A-Z]{2}$",
-                  "description": "ISO country code"
+                  "description": "ISO country code",
+                  "example": "US"
                 }
               }
             },
@@ -233,50 +257,72 @@
               "properties": {
                 "name": {
                   "type": "string",
-                  "description": "Contact name"
+                  "description": "Contact name",
+                  "example": "John Doe"
                 },
                 "email": {
                   "type": "string",
                   "format": "email",
-                  "description": "Email address"
+                  "description": "Email address",
+                  "example": "john.doe@example.com"
                 },
                 "phone": {
                   "type": "string",
                   "pattern": "^\\+?[1-9]\\d{1,14}$",
-                  "description": "Phone number"
+                  "description": "Phone number",
+                  "example": "+1234567890"
                 }
               }
             },
             "Invoice": {
-              "type": "object",
-              "required": ["invoiceId", "billTo", "charges", "status"],
-              "description": "Invoice for transportation services",
-              "properties": {
-                "invoiceId": {
-                  "type": "string",
-                  "description": "Unique invoice identifier"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/BaseEntity"
                 },
-                "billTo": {
-                  "$ref": "#/components/schemas/BillingParty"
-                },
-                "charges": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/InvoiceCharge"
+                {
+                  "type": "object",
+                  "required": ["invoiceId", "billTo", "charges", "status"],
+                  "description": "Invoice for transportation services",
+                  "properties": {
+                    "invoiceId": {
+                      "type": "string",
+                      "description": "Unique invoice identifier",
+                      "example": "INV-2024-001"
+                    },
+                    "billTo": {
+                      "$ref": "#/components/schemas/BillingParty"
+                    },
+                    "charges": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/InvoiceCharge"
+                      },
+                      "example": [
+                        {
+                          "chargeType": "FREIGHT",
+                          "amount": {
+                            "value": 1000.00,
+                            "currency": "USD"
+                          }
+                        }
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["DRAFT", "ISSUED", "PAID"],
+                      "example": "ISSUED"
+                    }
                   }
-                },
-                "status": {
-                  "type": "string",
-                  "enum": ["DRAFT", "ISSUED", "PAID"]
                 }
-              }
+              ]
             },
             "BillingParty": {
               "type": "object",
               "required": ["partyId", "billingDetails"],
               "properties": {
                 "partyId": {
-                  "type": "string"
+                  "type": "string",
+                  "example": "PARTY-001"
                 },
                 "billingDetails": {
                   "$ref": "#/components/schemas/BillingDetails"
@@ -289,7 +335,8 @@
               "properties": {
                 "chargeType": {
                   "type": "string",
-                  "enum": ["FREIGHT", "FUEL_SURCHARGE", "HANDLING"]
+                  "enum": ["FREIGHT", "FUEL_SURCHARGE", "HANDLING"],
+                  "example": "FREIGHT"
                 },
                 "amount": {
                   "$ref": "#/components/schemas/MonetaryAmount"
@@ -314,7 +361,53 @@
                         "items": {
                           "$ref": "#/components/schemas/Invoice"
                         }
-                      }
+                      },
+                      "example": [
+                        {
+                          "id": "123e4567-e89b-12d3-a456-426614174000",
+                          "type": "INVOICE",
+                          "status": "ACTIVE",
+                          "createdAt": "2024-01-01T12:00:00Z",
+                          "updatedAt": "2024-01-01T12:00:00Z",
+                          "invoiceId": "INV-2024-001",
+                          "billTo": {
+                            "partyId": "PARTY-001",
+                            "billingDetails": {
+                              "id": "456e4567-e89b-12d3-a456-426614174000",
+                              "type": "BILLING",
+                              "status": "ACTIVE",
+                              "createdAt": "2024-01-01T12:00:00Z",
+                              "updatedAt": "2024-01-01T12:00:00Z",
+                              "billingParty": {
+                                "partyId": "PARTY-001",
+                                "name": "Acme Corporation",
+                                "type": "SHIPPER",
+                                "address": {
+                                  "street": "123 Main St",
+                                  "city": "Boston",
+                                  "state": "MA",
+                                  "postalCode": "02110",
+                                  "country": "US"
+                                }
+                              },
+                              "amount": {
+                                "value": 1250.50,
+                                "currency": "USD"
+                              }
+                            }
+                          },
+                          "charges": [
+                            {
+                              "chargeType": "FREIGHT",
+                              "amount": {
+                                "value": 1000.00,
+                                "currency": "USD"
+                              }
+                            }
+                          ],
+                          "status": "ISSUED"
+                        }
+                      ]
                     }
                   }
                 }
@@ -330,6 +423,32 @@
                   "application/json": {
                     "schema": {
                       "$ref": "#/components/schemas/Invoice"
+                    },
+                    "example": {
+                      "invoiceId": "INV-2024-002",
+                      "billTo": {
+                        "partyId": "PARTY-001",
+                        "billingDetails": {
+                          "billingParty": {
+                            "partyId": "PARTY-001",
+                            "name": "Acme Corporation"
+                          },
+                          "amount": {
+                            "value": 1500.00,
+                            "currency": "USD"
+                          }
+                        }
+                      },
+                      "charges": [
+                        {
+                          "chargeType": "FREIGHT",
+                          "amount": {
+                            "value": 1500.00,
+                            "currency": "USD"
+                          }
+                        }
+                      ],
+                      "status": "DRAFT"
                     }
                   }
                 }
