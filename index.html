@@ -246,6 +246,55 @@
                   "description": "Phone number"
                 }
               }
+            },
+            "Invoice": {
+              "type": "object",
+              "required": ["invoiceId", "billTo", "charges", "status"],
+              "description": "Invoice for transportation services",
+              "properties": {
+                "invoiceId": {
+                  "type": "string",
+                  "description": "Unique invoice identifier"
+                },
+                "billTo": {
+                  "$ref": "#/components/schemas/BillingParty"
+                },
+                "charges": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InvoiceCharge"
+                  }
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["DRAFT", "ISSUED", "PAID"]
+                }
+              }
+            },
+            "BillingParty": {
+              "type": "object",
+              "required": ["partyId", "billingDetails"],
+              "properties": {
+                "partyId": {
+                  "type": "string"
+                },
+                "billingDetails": {
+                  "$ref": "#/components/schemas/BillingDetails"
+                }
+              }
+            },
+            "InvoiceCharge": {
+              "type": "object",
+              "required": ["chargeType", "amount"],
+              "properties": {
+                "chargeType": {
+                  "type": "string",
+                  "enum": ["FREIGHT", "FUEL_SURCHARGE", "HANDLING"]
+                },
+                "amount": {
+                  "$ref": "#/components/schemas/MonetaryAmount"
+                }
+              }
             }
           }
         },
