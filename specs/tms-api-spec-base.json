@@ -1,17 +1,12 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Unified TMS API",
+    "title": "TMS API Documentation",
     "version": "1.0.0",
-    "description": "A modular API for Transportation Management Systems that provides standardized interfaces for quoting, booking, and managing shipments.",
+    "description": "Transportation Management System API documentation",
     "contact": {
-      "name": "TMS API Support",
-      "email": "api-support@example.com",
-      "url": "https://developer.example.com"
-    },
-    "license": {
-      "name": "Apache 2.0",
-      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+      "name": "API Support",
+      "email": "api-support@example.com"
     }
   },
   "servers": [
@@ -22,15 +17,6 @@
     {
       "url": "https://api.staging.example.com/v1",
       "description": "Staging server"
-    },
-    {
-      "url": "https://api.dev.example.com/v1",
-      "description": "Development server"
-    }
-  ],
-  "security": [
-    {
-      "bearerAuth": []
     }
   ],
   "tags": [
@@ -57,237 +43,888 @@
     {
       "name": "Billing Services",
       "description": "Operations for billing and invoicing"
+    },
+    {
+      "name": "Authentication",
+      "description": "Operations related to user authentication"
+    },
+    {
+      "name": "Booking Management",
+      "description": "Operations for booking management"
+    },
+    {
+      "name": "Document Management",
+      "description": "Operations for document management"
+    },
+    {
+      "name": "Event Notifications",
+      "description": "Operations for event notifications"
     }
   ],
-  "components": {
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT",
-        "description": "JWT token obtained from the authentication endpoint"
-      }
+  "paths": {
+    "/quotes": {
+      "$ref": "./tms-api-spec-quotes.json#/paths/~1quotes"
     },
-    "parameters": {
-      "correlationId": {
-        "name": "X-Correlation-ID",
-        "in": "header",
-        "required": true,
-        "description": "Unique identifier for tracing the request through the system",
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      },
-      "idempotencyKey": {
-        "name": "Idempotency-Key",
-        "in": "header",
-        "required": true,
-        "description": "Unique key to ensure idempotent operations",
-        "schema": {
-          "type": "string",
-          "format": "uuid"
-        }
-      }
+    "/quotes/{id}": {
+      "$ref": "./tms-api-spec-quotes.json#/paths/~1quotes~1{id}"
     },
-    "headers": {
-      "RateLimit-Remaining": {
-        "description": "Number of requests remaining in the current time window",
-        "schema": {
-          "type": "integer"
-        }
-      },
-      "RateLimit-Reset": {
-        "description": "Time when the rate limit will reset, in UTC epoch seconds",
-        "schema": {
-          "type": "integer"
-        }
-      }
-    },
-    "responses": {
-      "400BadRequest": {
-        "description": "The request was invalid or malformed",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/Error"
-            },
-            "example": {
-              "errorCode": "VALIDATION_ERROR",
-              "message": "Request validation failed",
-              "details": [
-                {
-                  "field": "cargoDetails.weight",
-                  "message": "Weight must be greater than 0"
+    "/quotes/{id}/status": {
+      "post": {
+        "tags": ["Quote Management"],
+        "summary": "Update quote status",
+        "operationId": "updateQuoteStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "/quotes/{id}/status": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED", "EXPIRED", "CONVERTED"]
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
                 }
-              ]
+              }
             }
-          }
-        }
-      },
-      "401Unauthorized": {
-        "description": "Authentication credentials are missing or invalid",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/Error"
-            },
-            "example": {
-              "errorCode": "UNAUTHORIZED",
-              "message": "Invalid or expired token provided"
-            }
-          }
-        }
-      },
-      "429TooManyRequests": {
-        "description": "Too many requests have been made in the given time period",
-        "headers": {
-          "RateLimit-Remaining": {
-            "$ref": "#/components/schemas/RateLimitRemaining"
-          },
-          "RateLimit-Reset": {
-            "$ref": "#/components/schemas/RateLimitReset"
           }
         },
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/Error"
-            },
-            "example": {
-              "errorCode": "RATE_LIMIT_EXCEEDED",
-              "message": "API rate limit exceeded",
-              "details": {
-                "resetTime": "2025-02-06T10:00:00Z"
+        "responses": {
+          "200": {
+            "description": "Status updated successfully"
+          }
+        }
+      }
+    },
+    "/locations": {
+      "$ref": "./tms-api-spec-locations.json#/paths/~1locations"
+    },
+    "/locations/validate": {
+      "$ref": "./tms-api-spec-locations.json#/paths/~1locations~1validate"
+    },
+    "/locations/geocode": {
+      "$ref": "./tms-api-spec-locations.json#/paths/~1locations~1geocode"
+    },
+    "/cargo": {
+      "$ref": "./tms-api-spec-cargo.json#/paths/~1cargo"
+    },
+    "/cargo/{id}": {
+      "$ref": "./tms-api-spec-cargo.json#/paths/~1cargo~1{id}"
+    },
+    "/rates/calculate": {
+      "$ref": "./tms-api-spec-rates.json#/paths/~1rates~1calculate"
+    },
+    "/rates/surcharges": {
+      "$ref": "./tms-api-spec-rates.json#/paths/~1rates~1surcharges"
+    },
+    "/schedules": {
+      "$ref": "./tms-api-spec-schedules.json#/paths/~1schedules"
+    },
+    "/schedules/{id}": {
+      "$ref": "./tms-api-spec-schedules.json#/paths/~1schedules~1{id}"
+    },
+    "/invoices": {
+      "$ref": "./tms-api-spec-billing.json#/paths/~1invoices"
+    },
+    "/bookings": {
+      "post": {
+        "tags": ["Booking Management"],
+        "summary": "Create booking from quote",
+        "operationId": "createBooking",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Booking"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Booking created successfully"
+          }
+        }
+      }
+    },
+    "/bookings/{id}/status": {
+      "post": {
+        "tags": ["Booking Management"],
+        "summary": "Update booking status",
+        "operationId": "updateBookingStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["DRAFT", "CONFIRMED", "AMENDED", "CANCELLED"]
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status updated successfully"
+          }
+        }
+      }
+    },
+    "/documents": {
+      "post": {
+        "tags": ["Document Management"],
+        "summary": "Generate document",
+        "operationId": "generateDocument",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["type", "referenceId"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["BILL_OF_LADING", "BOOKING_CONFIRMATION", "COMMERCIAL_INVOICE", "PACKING_LIST"]
+                  },
+                  "referenceId": {
+                    "type": "string",
+                    "description": "ID of the related resource (quote, booking, etc.)"
+                  },
+                  "format": {
+                    "type": "string",
+                    "enum": ["PDF", "DOCX"],
+                    "default": "PDF"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document generated successfully",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
           }
         }
       }
     },
+    "/webhooks": {
+      "post": {
+        "tags": ["Event Notifications"],
+        "summary": "Register webhook endpoint",
+        "operationId": "registerWebhook",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookRegistration"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Webhook registered successfully"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login to obtain JWT token",
+        "operationId": "login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "password"],
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "user@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "expiresIn": {
+                      "type": "integer",
+                      "description": "Token expiration in seconds"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Check API health status",
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "description": "API is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["healthy", "degraded"],
+                      "example": "healthy"
+                    },
+                    "version": {
+                      "type": "string",
+                      "example": "1.0.0"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Refresh JWT token",
+        "operationId": "refreshToken",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Token refreshed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "expiresIn": {
+                      "type": "integer",
+                      "description": "Token expiration in seconds"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/auth/oauth/authorize": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Initialize OAuth2 authorization flow",
+        "operationId": "oauthAuthorize",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "redirect_uri",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          {
+            "name": "response_type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["code"]
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Space-separated list of requested scopes"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Random string to prevent CSRF attacks"
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to authorization page"
+          }
+        }
+      }
+    },
+    "/auth/oauth/token": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Exchange authorization code for access token",
+        "operationId": "oauthToken",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": ["grant_type", "client_id", "client_secret", "code", "redirect_uri"],
+                "properties": {
+                  "grant_type": {
+                    "type": "string",
+                    "enum": ["authorization_code", "refresh_token"]
+                  },
+                  "client_id": {
+                    "type": "string"
+                  },
+                  "client_secret": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "redirect_uri": {
+                    "type": "string",
+                    "format": "uri"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Access token response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string"
+                    },
+                    "token_type": {
+                      "type": "string",
+                      "enum": ["Bearer"]
+                    },
+                    "expires_in": {
+                      "type": "integer"
+                    },
+                    "refresh_token": {
+                      "type": "string"
+                    },
+                    "scope": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/apikey": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Generate API key",
+        "operationId": "generateApiKey",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "scopes"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name of the API key"
+                  },
+                  "scopes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": ["read:quotes", "write:quotes", "read:cargo", "write:cargo"]
+                    }
+                  },
+                  "expiresIn": {
+                    "type": "integer",
+                    "description": "Expiration in seconds (optional)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "API key generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "apiKey": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "scopes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "$ref": "./tms-api-spec-common.json#/components/parameters",
+      "quoteId": {
+        "name": "quoteId",
+        "in": "query",
+        "description": "Filter by parent quote ID",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "cargoId": {
+        "name": "cargoId",
+        "in": "query",
+        "description": "Filter by associated cargo ID",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "rateId": {
+        "name": "rateId",
+        "in": "query",
+        "description": "Filter by associated rate ID",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "scheduleId": {
+        "name": "scheduleId",
+        "in": "query",
+        "description": "Filter by associated schedule ID",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "responses": {
+      "$ref": "./tms-api-spec-common.json#/components/responses"
+    },
     "schemas": {
-      "Error": {
+      "$ref": "./tms-api-spec-common.json#/components/schemas",
+      "ResourceReference": {
         "type": "object",
-        "required": ["errorCode", "message"],
+        "required": ["id", "type"],
         "properties": {
-          "errorCode": {
+          "id": {
             "type": "string",
-            "description": "Machine-readable error code",
-            "example": "VALIDATION_ERROR"
+            "description": "Resource identifier"
           },
-          "message": {
+          "type": {
             "type": "string",
-            "description": "Human-readable error message",
-            "example": "Request validation failed"
+            "description": "Resource type",
+            "enum": ["QUOTE", "CARGO", "RATE", "SCHEDULE", "INVOICE"]
           },
-          "details": {
-            "type": "object",
-            "description": "Additional error context",
-            "additionalProperties": true
-          },
-          "helpUrl": {
+          "href": {
             "type": "string",
             "format": "uri",
-            "description": "Link to error documentation",
-            "example": "https://developer.example.com/errors/VALIDATION_ERROR"
+            "description": "Resource URL"
           }
         }
       },
-      "BillingDetails": {
+      "Quote": {
         "allOf": [
-          {
-            "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity"
-          },
+          { "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity" },
           {
             "type": "object",
-            "required": ["billingParty", "amount"],
-            "description": "Billing information",
             "properties": {
-              "billingParty": {
-                "$ref": "./tms-api-spec-common.json#/components/schemas/Party"
-              },
-              "amount": {
-                "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
-              },
-              "dueDate": {
-                "type": "string",
-                "format": "date",
-                "description": "Payment due date"
-              },
-              "paymentTerms": {
-                "type": "string",
-                "description": "Payment terms description"
-              },
-              "invoiceNumber": {
-                "type": "string",
-                "description": "Invoice reference number"
-              },
-              "lineItems": {
+              "cargo": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/BillingLineItem"
-                }
+                  "$ref": "#/components/schemas/ResourceReference"
+                },
+                "description": "References to associated cargo records"
               },
-              "taxes": {
+              "rates": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/TaxDetail"
-                }
+                  "$ref": "#/components/schemas/ResourceReference"
+                },
+                "description": "References to associated rate records"
+              },
+              "schedules": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ResourceReference"
+                },
+                "description": "References to associated schedule records"
               }
             }
           }
         ]
       },
-      "BillingLineItem": {
+      "Cargo": {
+        "allOf": [
+          { "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity" },
+          {
+            "type": "object",
+            "properties": {
+              "quote": {
+                "$ref": "#/components/schemas/ResourceReference",
+                "description": "Reference to parent quote"
+              }
+            }
+          }
+        ]
+      },
+      "Rate": {
+        "allOf": [
+          { "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity" },
+          {
+            "type": "object",
+            "properties": {
+              "quote": {
+                "$ref": "#/components/schemas/ResourceReference",
+                "description": "Reference to parent quote"
+              },
+              "cargo": {
+                "$ref": "#/components/schemas/ResourceReference",
+                "description": "Reference to associated cargo"
+              }
+            }
+          }
+        ]
+      },
+      "Schedule": {
+        "allOf": [
+          { "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity" },
+          {
+            "type": "object",
+            "properties": {
+              "quote": {
+                "$ref": "#/components/schemas/ResourceReference",
+                "description": "Reference to parent quote"
+              },
+              "rates": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ResourceReference"
+                },
+                "description": "References to associated rates"
+              }
+            }
+          }
+        ]
+      },
+      "Invoice": {
+        "allOf": [
+          { "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity" },
+          {
+            "type": "object",
+            "properties": {
+              "quote": {
+                "$ref": "#/components/schemas/ResourceReference",
+                "description": "Reference to parent quote"
+              },
+              "rates": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ResourceReference"
+                },
+                "description": "References to applied rates"
+              },
+              "schedules": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ResourceReference"
+                },
+                "description": "References to associated schedules"
+              }
+            }
+          }
+        ]
+      },
+      "Booking": {
         "type": "object",
-        "required": ["description", "amount"],
-        "description": "Individual billing line item",
+        "required": ["quoteId", "status"],
         "properties": {
-          "description": {
+          "id": {
+            "type": "string"
+          },
+          "quoteId": {
+            "type": "string"
+          },
+          "status": {
             "type": "string",
-            "description": "Line item description"
+            "enum": ["DRAFT", "CONFIRMED", "AMENDED", "CANCELLED"]
           },
-          "amount": {
-            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+          "bookingNumber": {
+            "type": "string"
           },
-          "quantity": {
-            "type": "number",
-            "minimum": 0,
-            "description": "Quantity of items"
-          },
-          "unitPrice": {
-            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
-          },
-          "serviceCode": {
-            "type": "string",
-            "description": "Service code reference"
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Document"
+            }
           }
         }
       },
-      "TaxDetail": {
+      "Document": {
         "type": "object",
-        "required": ["type", "rate", "amount"],
-        "description": "Tax information",
+        "required": ["type", "status"],
         "properties": {
+          "id": {
+            "type": "string"
+          },
           "type": {
             "type": "string",
-            "enum": ["VAT", "GST", "SALES_TAX", "OTHER"],
-            "description": "Type of tax"
+            "enum": ["BILL_OF_LADING", "BOOKING_CONFIRMATION", "COMMERCIAL_INVOICE", "PACKING_LIST"]
           },
-          "rate": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100,
-            "description": "Tax rate percentage"
-          },
-          "amount": {
-            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
-          },
-          "taxNumber": {
+          "status": {
             "type": "string",
-            "description": "Tax registration number"
+            "enum": ["DRAFT", "FINAL", "AMENDED", "VOID"]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "issuedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
+      },
+      "WebhookRegistration": {
+        "type": "object",
+        "required": ["url", "events"],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "quote.created",
+                "quote.updated",
+                "quote.status_changed",
+                "booking.created",
+                "booking.confirmed",
+                "booking.amended",
+                "document.generated",
+                "rate.changed",
+                "schedule.changed"
+              ]
+            }
+          },
+          "secret": {
+            "type": "string",
+            "description": "Webhook signing secret"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "$ref": "./tms-api-spec-common.json#/components/securitySchemes",
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token obtained from /auth/login endpoint"
+      },
+      "oauth2Auth": {
+        "type": "oauth2",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "/auth/oauth/authorize",
+            "tokenUrl": "/auth/oauth/token",
+            "scopes": {
+              "read:quotes": "Read quotes",
+              "write:quotes": "Create and modify quotes",
+              "read:cargo": "Read cargo information",
+              "write:cargo": "Create and modify cargo",
+              "read:rates": "Access rate information",
+              "read:schedules": "Access schedule information",
+              "read:invoices": "Access invoice information",
+              "write:invoices": "Create and modify invoices"
+            }
+          }
+        }
+      },
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    },
+    "headers": {
+      "X-Rate-Limit-Limit": {
+        "description": "The number of allowed requests in the current period",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "X-Rate-Limit-Remaining": {
+        "description": "The number of remaining requests in the current period",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "X-Rate-Limit-Reset": {
+        "description": "The number of seconds left in the current period",
+        "schema": {
+          "type": "integer"
+        }
+      }
+    }
+  },
+  "x-api-guidelines": {
+    "versioning": {
+      "strategy": "URI versioning",
+      "format": "v{major}",
+      "current": "v1",
+      "supported": ["v1"],
+      "deprecation": {
+        "policy": "Versions are supported for 12 months after deprecation notice",
+        "notification": "Deprecation notices will be sent via email and HTTP headers"
+      }
+    },
+    "rate-limiting": {
+      "window": "15 minutes",
+      "max-requests": 1000,
+      "exceeded-behavior": "Requests will receive 429 Too Many Requests response",
+      "headers": [
+        "X-Rate-Limit-Limit",
+        "X-Rate-Limit-Remaining",
+        "X-Rate-Limit-Reset"
+      ]
+    },
+    "error-handling": {
+      "format": {
+        "type": "object",
+        "properties": {
+          "code": "string (machine-readable error code)",
+          "message": "string (human-readable message)",
+          "details": "array of specific error details"
+        }
+      },
+      "status-codes": {
+        "400": "Bad Request - Invalid input",
+        "401": "Unauthorized - Authentication required",
+        "403": "Forbidden - Insufficient permissions",
+        "404": "Not Found - Resource doesn't exist",
+        "409": "Conflict - Resource state conflict",
+        "422": "Unprocessable Entity - Validation error",
+        "429": "Too Many Requests - Rate limit exceeded",
+        "500": "Internal Server Error - Server error",
+        "503": "Service Unavailable - Temporary unavailable"
       }
     }
   }

@@ -1,0 +1,200 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "TMS API Locations",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/locations": {
+      "get": {
+        "summary": "List all locations",
+        "operationId": "listLocations",
+        "tags": ["Location Services"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "$ref": "./tms-api-spec-common.json#/components/parameters/pageSize" },
+          { "$ref": "./tms-api-spec-common.json#/components/parameters/pageNumber" },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filter by location type",
+            "schema": {
+              "type": "string",
+              "enum": ["PORT", "WAREHOUSE", "TERMINAL", "ADDRESS"]
+            }
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "description": "Filter by country code (ISO 3166-1 alpha-2)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of locations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "totalItems": { "type": "integer" },
+                        "totalPages": { "type": "integer" },
+                        "currentPage": { "type": "integer" }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "data": [
+                    {
+                      "type": "PORT",
+                      "code": "USNYC",
+                      "coordinates": {
+                        "latitude": 40.7128,
+                        "longitude": -74.0060
+                      },
+                      "address": {
+                        "city": "New York",
+                        "state": "NY",
+                        "country": "US"
+                      }
+                    }
+                  ],
+                  "pagination": {
+                    "totalItems": 50,
+                    "totalPages": 3,
+                    "currentPage": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "./tms-api-spec-common.json#/components/responses/BadRequest" },
+          "401": { "$ref": "./tms-api-spec-common.json#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/locations/validate": {
+      "post": {
+        "summary": "Validate location",
+        "operationId": "validateLocation",
+        "tags": ["Location Services"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Location validation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "valid": {
+                      "type": "boolean"
+                    },
+                    "suggestions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "valid": true,
+                  "suggestions": [
+                    {
+                      "type": "PORT",
+                      "code": "USNYC",
+                      "coordinates": {
+                        "latitude": 40.7128,
+                        "longitude": -74.0060
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "./tms-api-spec-common.json#/components/responses/BadRequest" },
+          "401": { "$ref": "./tms-api-spec-common.json#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/locations/geocode": {
+      "get": {
+        "summary": "Geocode location",
+        "operationId": "geocodeLocation",
+        "tags": ["Location Services"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "address",
+            "in": "query",
+            "required": true,
+            "description": "Address to geocode",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Geocoding result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "coordinates": {
+                      "$ref": "./tms-api-spec-common.json#/components/schemas/Coordinates"
+                    },
+                    "formattedAddress": {
+                      "type": "string"
+                    },
+                    "accuracy": {
+                      "type": "string",
+                      "enum": ["EXACT", "INTERPOLATED", "APPROXIMATE"]
+                    }
+                  }
+                },
+                "example": {
+                  "coordinates": {
+                    "latitude": 40.7128,
+                    "longitude": -74.0060
+                  },
+                  "formattedAddress": "123 Main St, New York, NY 10001, USA",
+                  "accuracy": "EXACT"
+                }
+              }
+            }
+          },
+          "400": { "$ref": "./tms-api-spec-common.json#/components/responses/BadRequest" },
+          "401": { "$ref": "./tms-api-spec-common.json#/components/responses/Unauthorized" }
+        }
+      }
+    }
+  }
+} 

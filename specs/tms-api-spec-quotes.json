@@ -1,109 +1,213 @@
 {
+  "openapi": "3.0.3",
+  "info": {
+    "title": "TMS API Quotes",
+    "version": "1.0.0"
+  },
   "paths": {
     "/quotes": {
-      "post": {
+      "get": {
+        "summary": "List all quotes",
+        "operationId": "listQuotes",
         "tags": ["Quote Management"],
-        "summary": "Create a new quote request",
-        "description": "Creates a new shipping quote request. The response includes one or more route options with associated costs and schedules.",
-        "operationId": "createQuote",
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
+          { "$ref": "./tms-api-spec-common.json#/components/parameters/pageSize" },
+          { "$ref": "./tms-api-spec-common.json#/components/parameters/pageNumber" },
+          { "$ref": "./tms-api-spec-common.json#/components/parameters/sortBy" },
+          { "$ref": "./tms-api-spec-common.json#/components/parameters/sortOrder" },
           {
-            "$ref": "#/components/parameters/correlationId"
-          },
-          {
-            "$ref": "#/components/parameters/idempotencyKey"
+            "name": "status",
+            "in": "query",
+            "description": "Filter by quote status",
+            "schema": {
+              "type": "string",
+              "enum": ["DRAFT", "SENT", "ACCEPTED", "EXPIRED"]
+            }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "List of quotes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Quote"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "totalItems": { "type": "integer" },
+                        "totalPages": { "type": "integer" },
+                        "currentPage": { "type": "integer" }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": "123e4567-e89b-12d3-a456-426614174000",
+                      "quoteId": "QT-2024-001",
+                      "status": "SENT",
+                      "origin": {
+                        "type": "PORT",
+                        "code": "USNYC",
+                        "coordinates": {
+                          "latitude": 40.7128,
+                          "longitude": -74.0060
+                        }
+                      },
+                      "destination": {
+                        "type": "PORT",
+                        "code": "NLRTM",
+                        "coordinates": {
+                          "latitude": 51.9225,
+                          "longitude": 4.4792
+                        }
+                      },
+                      "cargo": {
+                        "type": "CONTAINER",
+                        "quantity": 1,
+                        "weight": {
+                          "value": 20000,
+                          "unit": "KG"
+                        }
+                      },
+                      "rates": [
+                        {
+                          "amount": {
+                            "value": 2500,
+                            "currency": "USD"
+                          }
+                        }
+                      ],
+                      "validUntil": "2024-02-01T23:59:59Z"
+                    }
+                  ],
+                  "pagination": {
+                    "totalItems": 100,
+                    "totalPages": 5,
+                    "currentPage": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "./tms-api-spec-common.json#/components/responses/BadRequest" },
+          "401": { "$ref": "./tms-api-spec-common.json#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "summary": "Create a new quote",
+        "operationId": "createQuote",
+        "tags": ["Quote Management"],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/QuoteRequest"
+                "$ref": "#/components/schemas/Quote"
               }
             }
           }
         },
         "responses": {
-          "202": {
-            "description": "Quote request accepted for processing",
-            "headers": {
-              "Location": {
-                "description": "URL to check quote status",
-                "schema": {
-                  "type": "string",
-                  "format": "uri"
-                }
-              }
-            },
+          "201": {
+            "description": "Quote created successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/QuoteAccepted"
+                  "$ref": "#/components/schemas/Quote"
                 }
               }
             }
           },
-          "400": {
-            "$ref": "#/components/responses/400BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/401Unauthorized"
-          },
-          "429": {
-            "$ref": "#/components/responses/429TooManyRequests"
-          }
+          "400": { "$ref": "./tms-api-spec-common.json#/components/responses/BadRequest" },
+          "401": { "$ref": "./tms-api-spec-common.json#/components/responses/Unauthorized" }
         }
       }
     },
-    "/quotes/{quoteId}": {
-      "get": {
-        "tags": ["Quote Management"],
-        "summary": "Retrieve a quote",
-        "description": "Retrieves the current state of a quote request including all available options if processing is complete.",
-        "operationId": "getQuote",
-        "parameters": [
-          {
-            "name": "quoteId",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier of the quote",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "$ref": "#/components/parameters/correlationId"
+    "/quotes/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Quote ID",
+          "schema": {
+            "type": "string"
           }
-        ],
+        }
+      ],
+      "get": {
+        "summary": "Get quote by ID",
+        "operationId": "getQuoteById",
+        "tags": ["Quote Management"],
+        "security": [{ "bearerAuth": [] }],
         "responses": {
           "200": {
-            "description": "Quote retrieved successfully",
+            "description": "Quote details",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/QuoteResponse"
+                  "$ref": "#/components/schemas/Quote"
                 }
               }
             }
           },
-          "404": {
-            "description": "Quote not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
+          "404": { "$ref": "./tms-api-spec-common.json#/components/responses/NotFound" },
+          "401": { "$ref": "./tms-api-spec-common.json#/components/responses/Unauthorized" }
         }
       }
     }
   },
   "components": {
     "schemas": {
+      "Quote": {
+        "allOf": [
+          {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity"
+          },
+          {
+            "type": "object",
+            "required": ["quoteId", "origin", "destination", "cargo"],
+            "properties": {
+              "quoteId": {
+                "type": "string",
+                "description": "Unique quote identifier"
+              },
+              "origin": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
+              },
+              "destination": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
+              },
+              "cargo": {
+                "$ref": "#/components/schemas/Cargo"
+              },
+              "rates": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Rate"
+                }
+              },
+              "validUntil": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Quote validity period"
+              }
+            }
+          }
+        ]
+      },
       "QuoteRequest": {
         "allOf": [
           {

@@ -1,28 +1,157 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "TMS API Documentation",
-    "version": "1.0.0",
-    "description": "Transportation Management System API documentation"
+    "title": "TMS API Billing",
+    "version": "1.0.0"
   },
   "paths": {
     "/invoices": {
       "get": {
         "summary": "List all invoices",
+        "operationId": "listInvoices",
+        "tags": ["Billing Services"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "$ref": "./tms-api-spec-common.json#/components/parameters/pageSize" },
+          { "$ref": "./tms-api-spec-common.json#/components/parameters/pageNumber" },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by invoice status",
+            "schema": {
+              "type": "string",
+              "enum": ["DRAFT", "ISSUED", "PAID", "OVERDUE", "CANCELLED"]
+            }
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "description": "Filter by issue date (from)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "description": "Filter by issue date (to)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Successful response",
+            "description": "List of invoices",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Invoice"
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Invoice"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "totalItems": { "type": "integer" },
+                        "totalPages": { "type": "integer" },
+                        "currentPage": { "type": "integer" }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "data": [
+                    {
+                      "invoiceId": "INV-2024-001",
+                      "status": "ISSUED",
+                      "issueDate": "2024-01-15",
+                      "dueDate": "2024-02-14",
+                      "customer": {
+                        "id": "CUST-001",
+                        "name": "Global Trading Co",
+                        "taxId": "123456789"
+                      },
+                      "items": [
+                        {
+                          "description": "Ocean Freight",
+                          "quantity": 1,
+                          "unitPrice": {
+                            "value": 2500,
+                            "currency": "USD"
+                          },
+                          "amount": {
+                            "value": 2500,
+                            "currency": "USD"
+                          }
+                        },
+                        {
+                          "description": "BAF Surcharge",
+                          "quantity": 1,
+                          "unitPrice": {
+                            "value": 250,
+                            "currency": "USD"
+                          },
+                          "amount": {
+                            "value": 250,
+                            "currency": "USD"
+                          }
+                        }
+                      ],
+                      "totalAmount": {
+                        "value": 2750,
+                        "currency": "USD"
+                      },
+                      "paymentTerms": "Net 30"
+                    }
+                  ],
+                  "pagination": {
+                    "totalItems": 45,
+                    "totalPages": 3,
+                    "currentPage": 1
                   }
                 }
               }
             }
+          },
+          "400": { "$ref": "./tms-api-spec-common.json#/components/responses/BadRequest" },
+          "401": { "$ref": "./tms-api-spec-common.json#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "summary": "Create new invoice",
+        "operationId": "createInvoice",
+        "tags": ["Billing Services"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Invoice"
+              }
+            }
           }
+        },
+        "responses": {
+          "201": {
+            "description": "Invoice created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invoice"
+                }
+              }
+            }
+          },
+          "400": { "$ref": "./tms-api-spec-common.json#/components/responses/BadRequest" },
+          "401": { "$ref": "./tms-api-spec-common.json#/components/responses/Unauthorized" }
         }
       }
     }
@@ -31,25 +160,83 @@
     "schemas": {
       "Invoice": {
         "type": "object",
-        "required": ["invoiceId", "billTo", "charges", "status"],
-        "description": "Invoice for transportation services",
+        "required": ["invoiceId", "status", "issueDate", "customer", "items", "totalAmount"],
         "properties": {
           "invoiceId": {
             "type": "string",
             "description": "Unique invoice identifier"
           },
-          "billTo": {
-            "$ref": "#/components/schemas/BillingParty"
-          },
-          "charges": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/InvoiceCharge"
-            }
-          },
           "status": {
             "type": "string",
-            "enum": ["DRAFT", "ISSUED", "PAID"]
+            "enum": ["DRAFT", "ISSUED", "PAID", "OVERDUE", "CANCELLED"],
+            "description": "Invoice status"
+          },
+          "issueDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Date when invoice was issued"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Payment due date"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/Customer"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceItem"
+            },
+            "description": "Invoice line items"
+          },
+          "totalAmount": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+          },
+          "paymentTerms": {
+            "type": "string",
+            "description": "Payment terms"
+          }
+        }
+      },
+      "Customer": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Customer identifier"
+          },
+          "name": {
+            "type": "string",
+            "description": "Customer name"
+          },
+          "taxId": {
+            "type": "string",
+            "description": "Tax identification number"
+          }
+        }
+      },
+      "InvoiceItem": {
+        "type": "object",
+        "required": ["description", "quantity", "unitPrice", "amount"],
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Item description"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "description": "Quantity"
+          },
+          "unitPrice": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+          },
+          "amount": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
           }
         }
       },
@@ -320,5 +507,31 @@
         }
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Quote Management",
+      "description": "Operations for creating and managing shipping quotes"
+    },
+    {
+      "name": "Location Services",
+      "description": "Operations for location validation and geocoding"
+    },
+    {
+      "name": "Cargo Management",
+      "description": "Operations for cargo specification and validation"
+    },
+    {
+      "name": "Rate Services",
+      "description": "Operations for rate calculation and pricing"
+    },
+    {
+      "name": "Schedule Services",
+      "description": "Operations for transit times and scheduling"
+    },
+    {
+      "name": "Billing Services",
+      "description": "Operations for billing and invoicing"
+    }
+  ]
 }

@@ -1,22 +1,222 @@
 {
+  "openapi": "3.0.3",
+  "info": {
+    "title": "TMS API Common Components",
+    "version": "1.0.0"
+  },
   "components": {
+    "parameters": {
+      "pageSize": {
+        "name": "pageSize",
+        "in": "query",
+        "description": "Number of records per page",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        }
+      },
+      "pageNumber": {
+        "name": "pageNumber",
+        "in": "query",
+        "description": "Page number",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        }
+      },
+      "sortBy": {
+        "name": "sortBy",
+        "in": "query",
+        "description": "Field to sort by",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "sortOrder": {
+        "name": "sortOrder",
+        "in": "query",
+        "description": "Sort order (asc or desc)",
+        "schema": {
+          "type": "string",
+          "enum": ["asc", "desc"],
+          "default": "asc"
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "example": "BAD_REQUEST"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Invalid request parameters"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "example": "NOT_FOUND"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Resource not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "example": "UNAUTHORIZED"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Authentication required"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "schemas": {
+      "BaseEntity": {
+        "type": "object",
+        "required": ["id", "type", "status", "createdAt"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "type": {
+            "type": "string",
+            "description": "Entity type"
+          },
+          "status": {
+            "type": "string",
+            "description": "Current status"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp"
+          }
+        }
+      },
       "MonetaryAmount": {
         "type": "object",
         "required": ["value", "currency"],
-        "description": "Monetary amount in a specific currency",
         "properties": {
           "value": {
             "type": "number",
             "format": "double",
-            "description": "Monetary value",
-            "example": 1250.50
+            "description": "Monetary value"
           },
           "currency": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code",
-            "example": "USD"
+            "description": "ISO 4217 currency code"
+          }
+        }
+      },
+      "Location": {
+        "type": "object",
+        "required": ["type", "coordinates"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["PORT", "WAREHOUSE", "TERMINAL", "ADDRESS"]
+          },
+          "coordinates": {
+            "$ref": "#/components/schemas/Coordinates"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "code": {
+            "type": "string",
+            "description": "Location code (e.g., UN/LOCODE)"
+          }
+        }
+      },
+      "Coordinates": {
+        "type": "object",
+        "required": ["latitude", "longitude"],
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "minimum": -180,
+            "maximum": 180
+          }
+        }
+      },
+      "Address": {
+        "type": "object",
+        "required": ["country"],
+        "properties": {
+          "street": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "postalCode": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
           }
         }
       },
@@ -175,76 +375,6 @@
           }
         }
       },
-      "Location": {
-        "type": "object",
-        "required": ["locationId", "type"],
-        "description": "Location information",
-        "properties": {
-          "locationId": {
-            "type": "string",
-            "description": "Unique location identifier"
-          },
-          "type": {
-            "type": "string",
-            "enum": ["PORT", "TERMINAL", "WAREHOUSE", "DEPOT", "ADDRESS"],
-            "description": "Type of location"
-          },
-          "name": {
-            "type": "string",
-            "description": "Location name"
-          },
-          "code": {
-            "type": "string",
-            "description": "Location code (e.g., UN/LOCODE)"
-          },
-          "address": {
-            "$ref": "#/components/schemas/Address"
-          },
-          "coordinates": {
-            "type": "object",
-            "properties": {
-              "latitude": {
-                "type": "number",
-                "minimum": -90,
-                "maximum": 90
-              },
-              "longitude": {
-                "type": "number",
-                "minimum": -180,
-                "maximum": 180
-              }
-            }
-          }
-        }
-      },
-      "Address": {
-        "type": "object",
-        "required": ["country"],
-        "description": "Physical address",
-        "properties": {
-          "street": {
-            "type": "string",
-            "description": "Street address"
-          },
-          "city": {
-            "type": "string",
-            "description": "City name"
-          },
-          "state": {
-            "type": "string",
-            "description": "State or province"
-          },
-          "postalCode": {
-            "type": "string",
-            "description": "Postal or ZIP code"
-          },
-          "country": {
-            "type": "string",
-            "pattern": "^[A-Z]{2}$",
-            "description": "ISO country code"
-          }
-        }
-      },
       "Party": {
         "type": "object",
         "required": ["partyId", "name"],
@@ -329,40 +459,13 @@
             "description": "Description of the exception"
           }
         }
-      },
-      "BaseEntity": {
-        "type": "object",
-        "required": ["id", "type", "status", "createdAt"],
-        "description": "Base entity pattern for all major resources",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier"
-          },
-          "type": {
-            "type": "string",
-            "description": "Entity type"
-          },
-          "status": {
-            "type": "string",
-            "description": "Current status"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Creation timestamp"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Last update timestamp"
-          },
-          "metadata": {
-            "type": "object",
-            "additionalProperties": true,
-            "description": "Additional metadata"
-          }
-        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     }
   }

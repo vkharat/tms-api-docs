@@ -1,0 +1,256 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "TMS API Cargo",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/cargo": {
+      "get": {
+        "summary": "List all cargo",
+        "operationId": "listCargo",
+        "tags": ["Cargo Management"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "$ref": "./tms-api-spec-common.json#/components/parameters/pageSize" },
+          { "$ref": "./tms-api-spec-common.json#/components/parameters/pageNumber" },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filter by cargo type",
+            "schema": {
+              "type": "string",
+              "enum": ["CONTAINER", "BREAKBULK", "BULK", "RORO"]
+            }
+          },
+          {
+            "name": "hazardous",
+            "in": "query",
+            "description": "Filter by hazardous status",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of cargo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Cargo"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "totalItems": { "type": "integer" },
+                        "totalPages": { "type": "integer" },
+                        "currentPage": { "type": "integer" }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "data": [
+                    {
+                      "type": "CONTAINER",
+                      "quantity": 1,
+                      "weight": {
+                        "value": 20000,
+                        "unit": "KG"
+                      },
+                      "volume": {
+                        "value": 33,
+                        "unit": "CBM"
+                      },
+                      "dimensions": {
+                        "length": 6,
+                        "width": 2.4,
+                        "height": 2.6,
+                        "unit": "M"
+                      },
+                      "hazardous": false
+                    }
+                  ],
+                  "pagination": {
+                    "totalItems": 50,
+                    "totalPages": 3,
+                    "currentPage": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "./tms-api-spec-common.json#/components/responses/BadRequest" },
+          "401": { "$ref": "./tms-api-spec-common.json#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "summary": "Create new cargo",
+        "operationId": "createCargo",
+        "tags": ["Cargo Management"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Cargo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cargo created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cargo"
+                }
+              }
+            }
+          },
+          "400": { "$ref": "./tms-api-spec-common.json#/components/responses/BadRequest" },
+          "401": { "$ref": "./tms-api-spec-common.json#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/cargo/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Cargo ID",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get cargo by ID",
+        "operationId": "getCargoById",
+        "tags": ["Cargo Management"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Cargo details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cargo"
+                }
+              }
+            }
+          },
+          "404": { "$ref": "./tms-api-spec-common.json#/components/responses/NotFound" },
+          "401": { "$ref": "./tms-api-spec-common.json#/components/responses/Unauthorized" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Cargo": {
+        "type": "object",
+        "required": ["type", "quantity"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["CONTAINER", "BREAKBULK", "BULK", "RORO"],
+            "description": "Type of cargo"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of units"
+          },
+          "weight": {
+            "$ref": "#/components/schemas/Weight"
+          },
+          "volume": {
+            "$ref": "#/components/schemas/Volume"
+          },
+          "dimensions": {
+            "$ref": "#/components/schemas/Dimensions"
+          },
+          "hazardous": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether the cargo is hazardous"
+          }
+        }
+      },
+      "Weight": {
+        "type": "object",
+        "required": ["value", "unit"],
+        "properties": {
+          "value": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "description": "Weight value"
+          },
+          "unit": {
+            "type": "string",
+            "enum": ["KG", "LB"],
+            "description": "Weight unit"
+          }
+        }
+      },
+      "Volume": {
+        "type": "object",
+        "required": ["value", "unit"],
+        "properties": {
+          "value": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "description": "Volume value"
+          },
+          "unit": {
+            "type": "string",
+            "enum": ["CBM", "CFT"],
+            "description": "Volume unit"
+          }
+        }
+      },
+      "Dimensions": {
+        "type": "object",
+        "required": ["length", "width", "height", "unit"],
+        "properties": {
+          "length": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "description": "Length"
+          },
+          "width": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "description": "Width"
+          },
+          "height": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "description": "Height"
+          },
+          "unit": {
+            "type": "string",
+            "enum": ["M", "FT"],
+            "description": "Dimension unit"
+          }
+        }
+      }
+    }
+  }
+} 

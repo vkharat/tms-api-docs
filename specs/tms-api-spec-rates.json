@@ -1,0 +1,222 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "TMS API Rates",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/rates/calculate": {
+      "post": {
+        "summary": "Calculate rates",
+        "operationId": "calculateRates",
+        "tags": ["Rate Services"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["origin", "destination", "cargo"],
+                "properties": {
+                  "origin": {
+                    "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
+                  },
+                  "destination": {
+                    "$ref": "./tms-api-spec-common.json#/components/schemas/Location"
+                  },
+                  "cargo": {
+                    "$ref": "./tms-api-spec-cargo.json#/components/schemas/Cargo"
+                  },
+                  "effectiveDate": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                }
+              },
+              "example": {
+                "origin": {
+                  "type": "PORT",
+                  "code": "USNYC"
+                },
+                "destination": {
+                  "type": "PORT",
+                  "code": "NLRTM"
+                },
+                "cargo": {
+                  "type": "CONTAINER",
+                  "quantity": 1,
+                  "weight": {
+                    "value": 20000,
+                    "unit": "KG"
+                  }
+                },
+                "effectiveDate": "2024-02-01"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculated rates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Rate"
+                  }
+                },
+                "example": [
+                  {
+                    "rateId": "RT-2024-001",
+                    "amount": {
+                      "value": 2500,
+                      "currency": "USD"
+                    },
+                    "validityPeriod": {
+                      "startDate": "2024-01-01",
+                      "endDate": "2024-01-31"
+                    },
+                    "surcharges": [
+                      {
+                        "type": "BAF",
+                        "amount": {
+                          "value": 250,
+                          "currency": "USD"
+                        },
+                        "calculation": "Per container"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "400": { "$ref": "./tms-api-spec-common.json#/components/responses/BadRequest" },
+          "401": { "$ref": "./tms-api-spec-common.json#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/rates/surcharges": {
+      "get": {
+        "summary": "List all surcharges",
+        "operationId": "listSurcharges",
+        "tags": ["Rate Services"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "$ref": "./tms-api-spec-common.json#/components/parameters/pageSize" },
+          { "$ref": "./tms-api-spec-common.json#/components/parameters/pageNumber" },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filter by surcharge type",
+            "schema": {
+              "type": "string",
+              "enum": ["BAF", "CAF", "PSS", "PCS"]
+            }
+          },
+          {
+            "name": "effectiveDate",
+            "in": "query",
+            "description": "Filter by effective date",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of surcharges",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Surcharge"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "totalItems": { "type": "integer" },
+                        "totalPages": { "type": "integer" },
+                        "currentPage": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "./tms-api-spec-common.json#/components/responses/BadRequest" },
+          "401": { "$ref": "./tms-api-spec-common.json#/components/responses/Unauthorized" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Rate": {
+        "type": "object",
+        "required": ["rateId", "amount", "validityPeriod"],
+        "properties": {
+          "rateId": {
+            "type": "string",
+            "description": "Unique rate identifier"
+          },
+          "amount": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+          },
+          "validityPeriod": {
+            "$ref": "#/components/schemas/DateRange"
+          },
+          "surcharges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Surcharge"
+            }
+          }
+        }
+      },
+      "Surcharge": {
+        "type": "object",
+        "required": ["type", "amount"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["BAF", "CAF", "PSS", "PCS"],
+            "description": "Type of surcharge"
+          },
+          "amount": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+          },
+          "calculation": {
+            "type": "string",
+            "description": "Calculation method"
+          }
+        }
+      },
+      "DateRange": {
+        "type": "object",
+        "required": ["startDate", "endDate"],
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Start date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "description": "End date"
+          }
+        }
+      }
+    }
+  }
+} 
