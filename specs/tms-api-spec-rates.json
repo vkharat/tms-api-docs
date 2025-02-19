@@ -163,22 +163,51 @@
     "schemas": {
       "Rate": {
         "type": "object",
-        "required": ["rateId", "amount", "validityPeriod"],
+        "required": ["total"],
         "properties": {
-          "rateId": {
-            "type": "string",
-            "description": "Unique rate identifier"
+          "total": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/Money"
           },
-          "amount": {
-            "$ref": "./tms-api-spec-common.json#/components/schemas/MonetaryAmount"
+          "base_rate": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/Money"
           },
-          "validityPeriod": {
-            "$ref": "#/components/schemas/DateRange"
+          "validity": {
+            "$ref": "./tms-api-spec-common.json#/components/schemas/DateTimeRange"
           },
-          "surcharges": {
+          "charges": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Surcharge"
+              "type": "object",
+              "required": ["type", "amount"],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["freight", "origin", "destination", "customs", "handling"]
+                },
+                "amount": {
+                  "$ref": "./tms-api-spec-common.json#/components/schemas/Money"
+                },
+                "included": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            }
+          },
+          "bid_details": {
+            "type": "object",
+            "properties": {
+              "ceiling_rate": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/Money"
+              },
+              "is_bid": {
+                "type": "boolean",
+                "default": false
+              },
+              "bid_status": {
+                "type": "string",
+                "enum": ["open", "submitted", "accepted", "rejected"]
+              }
             }
           }
         }

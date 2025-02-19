@@ -209,35 +209,147 @@
         ]
       },
       "QuoteRequest": {
-        "allOf": [
-          {
-            "$ref": "./tms-api-spec-common.json#/components/schemas/BaseEntity"
+        "type": "object",
+        "required": ["origin", "destination", "cargo", "enquiry_type", "shipment_type"],
+        "properties": {
+          "reference": {
+            "type": "string",
+            "description": "Customer's reference number"
           },
-          {
+          "enquiry_type": {
+            "type": "string",
+            "enum": ["spot", "contract", "dispatch"],
+            "description": "Type of rate inquiry"
+          },
+          "shipment_type": {
+            "type": "string",
+            "enum": ["import", "export", "domestic"],
+            "description": "Direction of shipment"
+          },
+          "bidding": {
             "type": "object",
-            "required": ["routingDetails", "cargoDetails"],
-            "description": "Request for a shipping quote",
+            "description": "Optional bidding details",
             "properties": {
-              "routingDetails": {
-                "$ref": "./tms-api-spec-routing.json#/components/schemas/RoutingDetails"
-              },
-              "cargoDetails": {
-                "$ref": "#/components/schemas/CargoDetails"
-              },
-              "serviceRequirements": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/ServiceRequirement"
-                }
-              },
-              "preferredCurrency": {
+              "close_time": {
                 "type": "string",
-                "pattern": "^[A-Z]{3}$",
-                "description": "Preferred currency for quote (ISO code)"
+                "format": "date-time",
+                "description": "When bidding closes"
+              },
+              "ceiling_rate": {
+                "type": "number",
+                "description": "Maximum acceptable rate"
               }
             }
+          },
+          "origin": {
+            "type": "object",
+            "required": ["address"],
+            "properties": {
+              "address": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/Address"
+              },
+              "locationType": {
+                "type": "string",
+                "enum": ["PORT", "WAREHOUSE", "DOOR", "CFS", "RAIL_RAMP"],
+                "default": "DOOR"
+              },
+              "handling": {
+                "type": "object",
+                "properties": {
+                  "stuffing": {
+                    "type": "string",
+                    "enum": ["factory_stuff", "dock_stuff"],
+                    "description": "Container stuffing location"
+                  },
+                  "customs": {
+                    "type": "boolean",
+                    "description": "Requires customs handling"
+                  }
+                }
+              }
+            }
+          },
+          "destination": {
+            "type": "object",
+            "required": ["address"],
+            "properties": {
+              "address": {
+                "$ref": "./tms-api-spec-common.json#/components/schemas/Address"
+              },
+              "locationType": {
+                "type": "string",
+                "enum": ["PORT", "WAREHOUSE", "DOOR", "CFS", "RAIL_RAMP"],
+                "default": "DOOR"
+              },
+              "handling": {
+                "type": "object",
+                "properties": {
+                  "destuffing": {
+                    "type": "string",
+                    "enum": ["factory_destuff", "dock_destuff", "dpd_destuff"],
+                    "description": "Container destuffing location"
+                  },
+                  "customs": {
+                    "type": "boolean",
+                    "description": "Requires customs handling"
+                  }
+                }
+              }
+            }
+          },
+          "cargo": {
+            "type": "array",
+            "items": {
+              "allOf": [
+                { "$ref": "./tms-api-spec-cargo.json#/components/schemas/Cargo" },
+                {
+                  "properties": {
+                    "weight_type": {
+                      "type": "string",
+                      "enum": ["by_package", "total_shipment"],
+                      "description": "How weight is calculated"
+                    },
+                    "value": {
+                      "type": "object",
+                      "properties": {
+                        "amount": {
+                          "type": "number"
+                        },
+                        "currency": {
+                          "type": "string",
+                          "pattern": "^[A-Z]{3}$"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "parties": {
+            "type": "object",
+            "description": "Involved parties",
+            "properties": {
+              "shipper_id": {
+                "type": "string"
+              },
+              "consignee_id": {
+                "type": "string"
+              },
+              "customer_id": {
+                "type": "string"
+              }
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Custom fields for extensibility",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 10
           }
-        ]
+        }
       },
       "CargoDetails": {
         "type": "object",

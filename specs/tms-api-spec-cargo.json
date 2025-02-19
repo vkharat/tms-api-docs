@@ -160,31 +160,108 @@
     "schemas": {
       "Cargo": {
         "type": "object",
-        "required": ["type", "quantity"],
+        "required": ["weight", "volume"],
         "properties": {
-          "type": {
+          "weight_type": {
             "type": "string",
-            "enum": ["CONTAINER", "BREAKBULK", "BULK", "RORO"],
-            "description": "Type of cargo"
+            "enum": ["by_package", "total_shipment"],
+            "default": "total_shipment"
           },
-          "quantity": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Number of units"
+          "total_shipment": {
+            "type": "object",
+            "properties": {
+              "weight": {
+                "type": "number",
+                "minimum": 0
+              },
+              "volume": {
+                "type": "number",
+                "minimum": 0
+              },
+              "volumetric_weight": {
+                "type": "number",
+                "minimum": 0
+              },
+              "package_count": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "package_type": {
+                "type": "string",
+                "enum": ["carton", "pallet", "drum", "roll", "ibc", "crate", "container", "case"]
+              }
+            }
           },
-          "weight": {
-            "$ref": "#/components/schemas/Weight"
-          },
-          "volume": {
-            "$ref": "#/components/schemas/Volume"
-          },
-          "dimensions": {
-            "$ref": "#/components/schemas/Dimensions"
+          "packages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "weight": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "dimensions": {
+                  "type": "object",
+                  "properties": {
+                    "length": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "width": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "height": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": ["cm", "in", "mm"]
+                    }
+                  }
+                },
+                "package_type": {
+                  "type": "string",
+                  "enum": ["carton", "pallet", "drum", "roll", "ibc", "crate", "container", "case"]
+                }
+              }
+            }
           },
           "hazardous": {
-            "type": "boolean",
-            "default": false,
-            "description": "Whether the cargo is hazardous"
+            "type": "object",
+            "properties": {
+              "is_hazardous": {
+                "type": "boolean",
+                "default": false
+              },
+              "un_number": {
+                "type": "string"
+              },
+              "class": {
+                "type": "string"
+              }
+            }
+          },
+          "temperature": {
+            "type": "object",
+            "properties": {
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string",
+                "enum": ["C", "F"]
+              }
+            }
           }
         }
       },

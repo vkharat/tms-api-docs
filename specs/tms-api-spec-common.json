@@ -200,9 +200,15 @@
       },
       "Address": {
         "type": "object",
-        "required": ["country"],
+        "required": ["city", "country_code"],
         "properties": {
-          "street": {
+          "name": {
+            "type": "string"
+          },
+          "address_line1": {
+            "type": "string"
+          },
+          "address_line2": {
             "type": "string"
           },
           "city": {
@@ -211,12 +217,16 @@
           "state": {
             "type": "string"
           },
-          "postalCode": {
-            "type": "string"
-          },
-          "country": {
+          "country_code": {
             "type": "string",
             "pattern": "^[A-Z]{2}$"
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "port_code": {
+            "type": "string",
+            "description": "UN/LOCODE for ports"
           }
         }
       },
@@ -377,27 +387,17 @@
       },
       "Party": {
         "type": "object",
-        "required": ["partyId", "name"],
-        "description": "Party information",
+        "required": ["id", "type"],
         "properties": {
-          "partyId": {
-            "type": "string",
-            "description": "Unique identifier for the party"
-          },
-          "name": {
-            "type": "string",
-            "description": "Party name"
+          "id": {
+            "type": "string"
           },
           "type": {
             "type": "string",
-            "enum": ["SHIPPER", "CONSIGNEE", "FREIGHT_FORWARDER", "CUSTOMS_BROKER"],
-            "description": "Type of party"
+            "enum": ["shipper", "consignee", "customer", "notify"]
           },
-          "address": {
-            "$ref": "#/components/schemas/Address"
-          },
-          "contact": {
-            "$ref": "#/components/schemas/Contact"
+          "reference": {
+            "type": "string"
           }
         }
       },
@@ -457,6 +457,32 @@
           "description": {
             "type": "string",
             "description": "Description of the exception"
+          }
+        }
+      },
+      "Money": {
+        "type": "object",
+        "required": ["amount", "currency"],
+        "properties": {
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          }
+        }
+      },
+      "DateTimeRange": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       }
